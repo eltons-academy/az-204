@@ -1,6 +1,6 @@
 # Resource Groups
 
-Resource Groups (RGs) are a container for all other Azure resources - VMs, SQL databases, Kubernetes clusters all get created inside a Resource Group. You might have one Resource Group for each application, containing all the components that app needs. Management permissions can be applied at the Resource Group level, and it's easy to remove all the resources by deleting the group.
+Resource Groups (RGs) are a container for all other Azure resources - VMs, SQL databases, Kubernetes clusters all get created inside a Resource Group. You might have one Resource Group for each application, containing all the components that app needs. Management permissions can be applied at the Resource Group level and it's easy to remove all the resources by deleting the group.
 
 ## Reference
 
@@ -18,11 +18,11 @@ Select _Create a Resource_ from the _Azure services_ section, search for Resourc
 
 - call it `labs-rg-1`
 - select a region near to you (note the list is split between _Recommended_ and _Others_)
-- add a tag: `courselabs=azure`
+- add a tag: `course=az204`
 - click create and watch for an alert to say the resource is ready
 - browse to the Resource Group and explore the UI
 
-> Each _region_ is a collection of nearby data centres. Typically you put all the components for an app into the same region, for minimal network latency. You may put additional deployments in other regions for high availability.
+> Each _region_ is a collection of nearby data centres. Typically you put all the components for an app into the same region for minimum network latency. You may put additional deployments in other regions for high availability.
 
 You can't do much with a Resource Group on its own, but we'll always create an RG to house other resources.
 
@@ -45,13 +45,13 @@ Help applies for groups of commands and individual commands:
 az group create --help
 ```
 
-The only required parameters are the group name and the region - which is confusingly referred to as the _location_ in most other `az` commands.
+The only required parameters are the group name and the location.
 
 </details><br/>
 
 The CLI help text shows you how to find the list of regions too. 
 
-📋 Create a new RG called `labs-rg-2` in a different region from the first, with the same tag `courselabs=azure`.
+📋 Create a new RG called `labs-rg-2` in a different region from the first, with the same tag `course=az204`.
 
 <details>
   <summary>Not sure how?</summary>
@@ -65,7 +65,7 @@ az account list-locations -o table
 Create a group, this example uses West US 2:
 
 ```
-az group create -n labs-rg-2 -l westus2 --tags courselabs=azure
+az group create -n labs-rg-2 -l westus2 --tags course=az204
 ```
 
 </details><br/>
@@ -87,19 +87,19 @@ az group list -o table
 
 </details><br/>
 
-We added the same tag to both RGs. Tags are simple key-value pairs which you can add to all resource to help manage them. You might have an `environment` tag to identify resources in dev or UAT environments.
+We added the same **tag** to both RGs. Tags are simple key-value pairs which you can add to all resource to help manage them. You might have an `environment` tag to identify resources in dev or UAT environments, or a `cost-centre` tag.
 
 You can add a query parameter to `list` commands to filter the results. Complete this query to print RGs which have the matching tag:
 
 ```
-az group list -o table --query "[?tags.courselabs ...
+az group list -o table --query "[?tags.course=='az204']"
 ```
 
-> The query parameter uses [JMESPath](http://jmespath.org/), a JSON query language. Results find all matching RGs across all regions.
+> The query parameter uses [JMESPath](http://jmespath.org/), a JSON query language. Results find all matching RGs in the subscription.
 
 ## Delete Resource Groups
 
-The `group delete` command removes a Resource Group - and any resources inside that group. You can have an RG with five Hadoop clusters and hundreds of Docker containers, and deleting the group will stop and remove the services and delete the data.
+The `group delete` command removes a Resource Group - and any resources inside that group. You can have an RG with five Spark clusters and hundreds of VMs, and deleting the group will stop and remove the services and delete the data.
 
 Because resource deletion is dangerous, the `az` command doesn't let you delete multiple groups based on a query. Try this - it will fail:
 
@@ -123,6 +123,6 @@ az group delete -n labs-rg-1
 
 ## Lab
 
-Sometimes you do want to delete all the resources that match in a query. How can you delete all the RGs with the courselabs tag with a single command?
+Sometimes you do want to delete all the resources that match in a query. How can you delete all the RGs with the `course=az204` tag with a single command?
 
 > Stuck? Try [hints](hints.md) or check the [solution](solution.md).

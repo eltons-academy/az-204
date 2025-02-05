@@ -28,19 +28,21 @@ The `az` command is a cross-platform tool for managing Azure resources:
 
 We'll us C# for simple demo applications:
 
-- [Download .NET SDK](https://dotnet.microsoft.com/en-us/download)
+- [Download .NET SDK](https://dotnet.microsoft.com/en-us/download) (choose the LTS version)
 
 ## Docker Desktop - Mac, Windows or Linux
 
-Docker Desktop is for running containers locally and gives you a Kubernetes environment:
+Docker is for running containers locally. Docker Desktop is the easiest option:
 
-- [Install Docker Desktop - Mac or Windows](https://www.docker.com/products/docker-desktop/)
-
-- [Install Docker Desktop - Linux ](https://docs.docker.com/desktop/setup/install/linux/)
+- Mac or Windows - [install Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
 The download and install takes a few minutes. When it's done, run the _Docker_ app and you'll see the Docker whale logo in your taskbar (Windows) or menu bar (macOS).
 
 > On Windows the install may need a restart before you get here.
+
+Or on Linux you can install the Docker Engine and CLI:
+
+- Linux - [install Docker Engine](https://docs.docker.com/engine/install/)
 
 ## Check your setup
 

@@ -8,21 +8,21 @@ These are hands-on resources to help you **really learn Azure** and **ace** the 
 
 ## Pre-reqs
 
- - Create an Azure account
+ - Create an Azure account (there is a [free option](https://azure.microsoft.com/en-in/pricing/free-services/))
  - [Set up the AZ command line, Git and Docker](./setup/README.md) 
  - Download your repo
     - Open a terminal (PowerShell on Windows; any shell on Linux/macOS) 
     - Run: `git clone https://github.com/courselabs/azure.git`
      - Open the folder: `cd azure`
 - _Optional_
-    - Install [Visual Studio Code](https://code.visualstudio.com) (free - Windows, macOS and Linux) to browse the repo and documentation
+    - Install [Visual Studio Code](https://code.visualstudio.com) (free - Windows, macOS and Linux) - it's the best way to browse the repo and documentation
 
 ## 0. Do this first :)
 
 | | |
 |-|-|
 | 0.1 | [Sign in and try the Azure tools](/labs/signin/README.md) |
-| 0.2 | [Understand Resource Groups and Tags](/labs/resourcegroups/README.md) |
+| 0.2 | [Understand Resource Groups](/labs/resourcegroups/README.md) |
 
 ## 1. Develop Azure compute solutions (25–30%)
 

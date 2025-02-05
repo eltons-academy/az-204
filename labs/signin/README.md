@@ -1,6 +1,6 @@
 # Azure Signin
 
-Azure uses Microsoft accounts to authenticate and authorize. In a corporate environment your account would be managed for you, but you can create your own personal account and create an Azure Subscription for your own use. One account can have permissions on multiple Subscriptions.
+Azure uses Microsoft accounts to authenticate and authorize. In a corporate environment your account would be managed for you, but you can create your own personal account and [create a free Azure Subscription](https://azure.microsoft.com/en-in/pricing/free-services/) for your own use. One account can have permissions on multiple Subscriptions.
 
 ## Reference
 
@@ -21,7 +21,7 @@ Open the [All Services](https://portal.azure.com/#allservices) view. This is whe
 
 - Open the _Virtual Machines_ view. How would you create a new Windows VM, and what sort of configuration settings do you need to specify?
 
-- Browse back to Azure Home and find the _Quickstart Center_. What do you see in the reference architecture for Azure Web Apps?
+- Browse back to Azure Home and find the _Quickstart Center_. There are lots of resources here for learning.
 
 > The Portal is a great way to browse Azure services and explore resources. But it doesn't give you a repeatable, automatable experience. 
 
@@ -32,7 +32,7 @@ The [az](https://docs.microsoft.com/en-us/cli/azure/) command line is another op
 
 - it's one of the first to be updated with new features and services
 - it has great documentaion online and integrated help
-- you can use it for creating and managing resources
+- you can use it for creating _and_ managing resources
 - it's cross-platform and easy to script in CI/CD pipelines
 
 Try running the `az` command to see how the integrated help works.
@@ -97,5 +97,7 @@ This is a quick lab to show you what you can do with the Cloud Shell. There's a 
 - [labs/signin/src/Program.cs](./src/Program.cs)
 
 Use the `dotnet new` command in the Cloud Shell to create a new console project. Upload the C# file to the project directory and run it.
+
+// FIXME .NET on Cloud Shell broken - wait for fix & verify lab - https://github.com/Azure/CloudShell/issues/518
 
 > Stuck? Try [hints](hints.md) or check the [solution](solution.md).

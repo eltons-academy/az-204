@@ -6,7 +6,7 @@ namespace labs_signin
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello from Azure Cloud Shell!");
+            Console.WriteLine("Hello from Azure Cloud Shell! Let's ace AZ-204!");
         }
     }
 }
