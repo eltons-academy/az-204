@@ -30,7 +30,19 @@ Start with a new Resource Group for the lab, using your preferred region:
 az group create -n labs-acr --tags course=az204 -l eastus
 ```
 
-📋 Create a new registry with the `acr create` command. You'll need to find a unique name for it.
+You'll need a unique name for your ACR instance. Store it in a variable for later use:
+
+```
+# with PowerShell:
+$ACR_NAME='<your-acr-name>'
+
+# OR with Linux shells:
+ACR_NAME='<your-acr-name>'
+```
+
+> I'm using PowerShell and my ACR name is _az204es001_, so I'll run `$ACR_NAME='az204es001'`
+
+📋 Create a new registry with the `acr create` command, using the `ACR_NAME` variable for the name.
 
 <details>
   <summary>Not sure how?</summary>
@@ -46,14 +58,14 @@ There are a lot more options than you see in the Portal. If you do use the Porta
 This creates a Basic-SKU registry:
 
 ```
-az acr create -g labs-acr -l eastus --sku 'Basic' -n <acr-name>
+az acr create -g labs-acr -l eastus --sku 'Basic' -n $ACR_NAME
 ```
 
 ACR names are stricter than most, so you might see an error if you try to use an illegal character.
 
 </details><br/>
 
-When the command completes you have your own registry, available at the domain name `<acr-name>.azurecr.io` - you'll see the full name in the `loginServer` field in the output.
+When the command completes you have your own registry, available at the domain name `<your-acr-name>.azurecr.io` - you'll see the full name in the `loginServer` field in the output.
 
 ## Pull and push images to ACR
 
@@ -67,10 +79,8 @@ docker image pull docker.io/nginx:alpine
 
 You can upload a copy of that image to ACR, but you need to change the name to use your ACR domain instead of Docker Hub. The `tag` command does that:
 
-_Make sure you use **your** ACR domain name:_
-
 ```
-docker image tag docker.io/nginx:alpine <acr-name>.azurecr.io/labs-acr/nginx:alpine-2204
+docker image tag docker.io/nginx:alpine "$ACR_NAME.azurecr.io/labs-acr/nginx:alpine-az204"
 ```
 
 > You can change all parts of the image name with a new tag.
@@ -89,7 +99,7 @@ _Try pushing your image to ACR:_
 
 ```
 # this will fail:
-docker image push <acr-name>.azurecr.io/labs-acr/nginx:alpine-2204
+docker image push "$ACR_NAME.azurecr.io/labs-acr/nginx:alpine-az204"
 ```
 
 📋 You can authenticate to the registry with your Azure account. Log in with an `az acr` command and then push the image.
@@ -106,13 +116,13 @@ az acr --help
 You'll see there's a `login` command which just needs your ACR name:
 
 ```
-az acr login -n <acr-name>
+az acr login -n $ACR_NAME
 ```
 
 Now when you push your image it will upload:
 
 ```
-docker image push <acr-name>.azurecr.io/labs-acr/nginx:alpine-2204
+docker image push "$ACR_NAME.azurecr.io/labs-acr/nginx:alpine-az204"
 ```
 
 </details><br/>
@@ -120,18 +130,18 @@ docker image push <acr-name>.azurecr.io/labs-acr/nginx:alpine-2204
 You can run a container from that image with this command:
 
 ```
-docker run -d -p 8080:80 <acr-name>.azurecr.io/labs-acr/nginx:alpine-2204
+docker run -d -p 8080:80 "$ACR_NAME.azurecr.io/labs-acr/nginx:alpine-az204"
 ```
 
 You can browse the app at http://localhost:8080. It's the standard Nginx app, but it's available from your own image registry. Anyone who has access to your ACR can run the same app from the image.
 
 ## Import an image 
 
-*TODO acr import
+// TODO acr import
 
 ## Build and Push a Custom Image
 
-*TODO - replace with acr build
+// TODO - replace with acr build
 
 When you build an image you can include the registry domain in the tag. Run this to build the simple ASP.NET web app from the [Docker 101 lab](/labs/docker/README.md), including a version number in the image tag:
 
@@ -168,7 +178,7 @@ docker push --all-tags <acr-name>.azurecr.io/labs-acr/simple-web
 
 ## Run a one-off container
 
-*TODO acr run
+// TODO acr run
 
 ## Browse to ACR in portal  
 
