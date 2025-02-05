@@ -10,12 +10,12 @@ The appsettings.json file has this setting:
 }
 ```
 
-You access that in code using the key `App:Environment`. You can  use that as the name of an environment variable too, but not all platforms like having a colon in the name so you can also use `App__Environment`.
+You access that in code using the key `App:Environment`. You can  use that as the name of an environment variable too, but not all platforms like having a colon in the name so it's better to replace the colon with a double underscore: `App__Environment`.
 
 You'll see that in the [Dockerfile](/src/simple-web/Dockerfile), and this is how you override the setting in the image for one container:
 
 ```
-docker run -d -p 8084:80 -e App__Environment=PROD simple-web 
+docker run -d -p 8084:8080 -e App__Environment=PROD simple-web 
 ```
 
 > You need to use a different port, because only one container can listen on each port

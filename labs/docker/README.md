@@ -11,9 +11,9 @@ Enter Docker - where you build all your application components and depdencies in
 - [.NET container images](https://hub.docker.com/_/microsoft-dotnet) - .NET cross-platform images
 - [.NET Framework container images](https://hub.docker.com/_/microsoft-dotnet-framework) - .NET 3.5 & 4.8 Windows images
 
-## Run a .NET web container
+## Running web apps in containers
 
-We'll run containers locally first and later see our options for running them in Azure. Make sure you have Docker Desktop running - you'll see the Docker whale icon in your taskbar (if you're running on Windows and you've used Docker Desktop before, be sure you're in Linux container mode).
+We'll run containers locally first and later see our options for running them in Azure. Make sure you have Docker Desktop running - you'll see the Docker whale icon in your taskbar (if you're running on Windows and you've used Docker Desktop before, be sure you're in _Linux container mode_).
 
 You use the `docker` command to run and manage containers. It has built-in help text, just like the `az` command:
 
@@ -21,17 +21,23 @@ You use the `docker` command to run and manage containers. It has built-in help 
 docker --help
 ```
 
-*TODO - docker pull
+Container apps are distributed in packages called _images_. You download an image from a package repository using the `docker pull` command:
+
+```
+docker pull nginx:alpine
+```
+
+> This downloads all the files which are part of the Docker image for running the Nginx web server in a container.
 
 The command you'll use most to start with is `docker run` which starts a new container from an image. Run this command to start a simple web server in a container:
 
 ```
-docker run -d -p 8081:80 nginx:alpine 
+docker run -d -p 8081:80 nginx:alpine
 ```
 
 You'll see lots of output, ending with a long random string which is the unique ID of your new container. What has the command done?
 
-- it runs a container from the `nginx:alpine` Docker image, which is publicly available and free to use. It has the Nginx web server installed and configured on an Alpine Linux OS base
+- it runs a container from the `nginx:alpine` Docker image which you just pulled. It has the Nginx web server installed and configured on an Alpine Linux OS base
 
 - the `-d` flag puts the container in the background, so it carries on running when the command returns
 
@@ -50,15 +56,15 @@ docker ps
 docker logs <container-id>
 ```
 
-📋 Run another container from Microsoft's **ASP.NET sample app** image - you can search for it on [Docker Hub](https://hub.docker.com). Run your ASP.NET container in the background and publish port `8082` from your machine to port `80` in the container.
+📋 Run another container from Microsoft's **ASP.NET sample app** image - you can search for it on [Docker Hub](https://hub.docker.com) (try _dotnet-samples_ as the search term). Run your ASP.NET container in the background and publish port `8082` from your machine to port `8080` in the container.
 
 <details>
   <summary>Not sure how?</summary>
 
-Search for _.NET_ on Docker Hub and you'll find a page that lists all the images, including [ASP.NET](https://hub.docker.com/_/microsoft-dotnet-aspnet/). That shows you there's a sample app in the image called `mcr.microsoft.com/dotnet/samples:aspnetapp`.
+Search for [dotnet-samples on Docker Hub](https://hub.docker.com/search?q=dotnet-samples&badges=verified_publisher) and you'll find a page that lists all the images, with [microsoft/dotnet-samples](https://hub.docker.com/r/microsoft/dotnet-samples) at the top. That shows you there's a sample app in the image called `mcr.microsoft.com/dotnet/samples:aspnetapp`.
 
 ```
-docker run -d -p 8082:80 mcr.microsoft.com/dotnet/samples:aspnetapp
+docker run -d -p 8082:8080 mcr.microsoft.com/dotnet/samples:aspnetapp
 ```
 
 </details><br/>
@@ -67,9 +73,9 @@ docker run -d -p 8082:80 mcr.microsoft.com/dotnet/samples:aspnetapp
 
 Is your Nginx app still running? What version of .NET is inside the container? Can you print the logs from the ASP.NET sample app?
 
-## Runtime & SDK images
+## Understand runtime & SDK images
 
-Microsoft owns the Docker images for .NET and it publishes different variations - you've seen ASP.NET for web apps, there are also runtime images for console apps, and SDK images you can use to build applications.
+Microsoft owns the Docker images for .NET and publishes different variations on the [Microsoft Artifact Registry](https://mcr.microsoft.com/). You've seen ASP.NET for web apps, there are also .NET runtime images for console apps and SDK images you can use to build applications.
 
 You can run a container interactively, so you connect to a shell session in the container. This is like creating a VM in the cloud and running SSH to connect.
 
@@ -87,7 +93,7 @@ exit
 
 You'll see the .NET and ASP.NET runtimes are installed, but there are no SDKs. You can use this image to run compiled apps, but not to build apps from source code.
 
-📋 Run an interactive container from the .NET **SDK** image, which you can find on Docker Hub. Use it to create and run a new console application.
+📋 Run an interactive container from the .NET **SDK** image, which you can find listed on Docker Hub. Use it to create and run a new console application.
 
 <details>
   <summary>Not sure how?</summary>
@@ -114,9 +120,13 @@ dotnet run
 
 When you run the new app you'lll see the standard _Hello, World!_ output. If this reminds you of the Azure Cloud Shell experience, those shell sessions actually run in containers behind the scenes.
 
-Run `exit` to leave the interactive container and come back to your terminal session.
+Now leave the interactive container and come back to your terminal session:
 
-## Build .NET apps in containers
+```
+exit
+```
+
+## Building .NET apps in containers
 
 Building apps inside a container is a good way of experimenting, but the real value of Docker is in packaging your own Docker images:
 
@@ -132,17 +142,17 @@ docker build -t simple-web src/simple-web
 
 You'll see Docker print the output from `dotnet` commands, building and compiling the app..
 
-📋 Run a background container from the new image and publish port `8083` from your machine to port `80` in the container.
+📋 Run a background container from the new image and publish port `8083` from your machine to port `8080` in the container.
 
 <details>
   <summary>Not sure how?</summary>
 
 It's the same `docker run` command.
 
-The image name can be a reference to Docker Hub or Microsoft's container registry, or to a local image:
+The image name can be a reference to Docker Hub or Microsoft Artifact Registry, or to a local image:
 
 ```
-docker run -d -p 8083:80 simple-web 
+docker run -d -p 8083:8080 simple-web 
 ```
 
 </details><br/>
@@ -153,12 +163,43 @@ The app is very simple, but you have the source code so you can make changes. Ma
 
 ## Pushing images to a registry
 
-*TODO
+Container images are stored on a registry for public (or private) access. You pull images to download them and you push images to share your own apps to a registry. Azure has its own image registry service, but for a quick start try pushing to Docker Hub.
 
-- create hub account
-- login
-- tag
-- push
+**You need a (free) Docker account to push to Docker Hub. Sign up at https://app.docker.com/signup**.
+
+To push images you need to authenticate to Docker Hub, and name the image with your username. It's easier if you store your usrname in a variable:
+
+```
+# with PowerShell:
+$USER='<your-docker-username>'
+
+# OR with Linux shells:
+USER='<your-docker-username>'
+```
+
+> I'm using PowerShell and my Docker user id is _sixeyed_, so I'll run `$USER='sixeyed'`
+
+Log in with the Docker command line - you will be prompted for your password:
+
+```
+docker login -u $USER
+```
+
+Now you add your username to an image by _tagging_ it, which basically gives it a new alias. Tag the web image you just built:
+
+```
+docker tag simple-web "$USER/simple-web:az-204"
+```
+
+And now you can push it to Docker Hub:
+
+```
+docker push "$USER/simple-web:az-204"
+```
+
+Browse to Docker Hub and you will see your image listed.
+
+> By default Docker Hub images are publicly available, so now anyone could run a container from your version of the app using a single Docker command.
 
 
 ## Lab
