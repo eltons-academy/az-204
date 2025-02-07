@@ -20,6 +20,7 @@ These are hands-on resources to help you **really learn Azure** and **ace** the 
      - Open the folder: `cd azure`
 - _Optional_
     - Install [Visual Studio Code](https://code.visualstudio.com) (free - Windows, macOS and Linux) - it's the best way to browse the repo and documentation
+    - Install [PowerShell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell) (free - Windows, macOS and Linux) - for the best experience following scripts in the exercises
 
 ## 0. Do this first :)
 
