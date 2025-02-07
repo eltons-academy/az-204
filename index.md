@@ -32,8 +32,8 @@ These are hands-on resources to help you **really learn Azure** and **ace** the 
 |-|-|
 | 1.1.1 | [Create and manage container images for solutions](/labs/docker/README.md) |
 | 1.1.2 | [Publish an image to Azure Container Registry](/labs/acr/README.md) |
-| 1.1.3| [Run containers by using Azure Container Instance](/labs/aci/README.md) |
-| 1.1.4| [Create solutions by using Azure Container Apps](/labs/aca/README.md) |
+| 1.1.3 | [Run containers by using Azure Container Instance](/labs/aci/README.md) |
+| 1.1.4 | [Create solutions by using Azure Container Apps](/labs/aca/README.md) |
 
 ### Implement Azure App Service Web Apps
 
