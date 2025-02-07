@@ -1,10 +1,12 @@
-# Azure Signin
+# Azure Tools
 
 Azure uses Microsoft accounts to authenticate and authorize. In a corporate environment your account would be managed for you, but you can create your own personal account and [create a free Azure Subscription](https://azure.microsoft.com/en-in/pricing/free-services/) for your own use. One account can have permissions on multiple Subscriptions.
 
+In this module we'll explore the main options for working with your Azure Subscription: the Azure Portal web app and the Azure CLI.
+
 ## Reference
 
-- [Subscriptions](https://docs.microsoft.com/en-gb/learn/modules/configure-subscriptions/3-implement-azure-subscriptions)
+- [Describe the core architectural components of Azure](https://learn.microsoft.com/en-gb/training/modules/describe-core-architectural-components-of-azure/) | Microsoft Learn
 
 - [Azure documentation home](https://docs.microsoft.com/en-gb/azure/?product=popular)
 
@@ -98,6 +100,5 @@ This is a quick lab to show you what you can do with the Cloud Shell. There's a 
 
 Use the `dotnet new` command in the Cloud Shell to create a new console project. Upload the C# file to the project directory and run it.
 
-// FIXME .NET on Cloud Shell broken - wait for fix & verify lab - https://github.com/Azure/CloudShell/issues/518
 
 > Stuck? Try [hints](hints.md) or check the [solution](solution.md).

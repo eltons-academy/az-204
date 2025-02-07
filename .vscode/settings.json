@@ -1,4 +1,8 @@
 {
     "dotnet.defaultSolution": "disable",
-    "workbench.colorTheme": "Quiet Light"
+    "workbench.colorTheme": "Quiet Light",
+    "workbench.editorAssociations": {
+        "*.md": "vscode.markdown.preview.editor"
+    },
+    "markdown.preview.doubleClickToSwitchToEditor": false
 }
