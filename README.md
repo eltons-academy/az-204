@@ -26,8 +26,8 @@ These are hands-on resources to help you **really learn Azure** and **ace** the 
 
 | | |
 |-|-|
-| 0.1 | [Sign in and try the Azure tools](/labs/signin/README.md) |
-| 0.2 | [Understand Resource Groups](/labs/resourcegroups/README.md) |
+| 0.1 | [Sign in and try the Azure tools](/modules/intro-tools/README.md) |
+| 0.2 | [Understand Resource Groups](/modules/intro-resourcegroups/README.md) |
 
 ## 1. Develop Azure compute solutions (25–30%)
 
@@ -35,7 +35,7 @@ These are hands-on resources to help you **really learn Azure** and **ace** the 
 
 | | |
 |-|-|
-| 1.1.1 | [Create and manage container images for solutions](/labs/docker/README.md) |
+| 1.1.1 | [Create and manage container images for solutions](/modules/containers/README.md) |
 | 1.1.2 | [Publish an image to Azure Container Registry](/labs/acr/README.md) |
 | 1.1.3 | [Run containers by using Azure Container Instance](/labs/aci/README.md) |
 | 1.1.4 | [Create solutions by using Azure Container Apps](/labs/aca/README.md) |
