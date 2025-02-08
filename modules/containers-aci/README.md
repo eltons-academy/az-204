@@ -4,7 +4,7 @@ The great thing about Docker containers is they're portable - your app runs in t
 
 ## Reference
 
-- [Run container images in Azure Container Instances](https://learn.microsoft.com/en-gb/training/modules/create-run-container-images-azure-container-instances/) - Microsoft Learn
+- [Run container images in Azure Container Instances](https://learn.microsoft.com/en-gb/training/modules/create-run-container-images-azure-container-instances/) | Microsoft Learn
 
 - [Container Instances documentation](https://docs.microsoft.com/en-gb/azure/container-instances/)
 
