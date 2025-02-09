@@ -36,7 +36,7 @@ Docker is for running containers locally. Docker Desktop is the easiest option:
 
 - Mac or Windows - [install Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
-The download and install takes a few minutes. When it's done, run the _Docker_ app and you'll see the Docker whale logo in your taskbar (Windows) or menu bar (macOS).
+The download and install takes a few minutes. When it's done, run the _Docker Desktop_ app and you'll see the Docker whale logo in your taskbar (Windows) or menu bar (macOS).
 
 > On Windows the install may need a restart before you get here.
 

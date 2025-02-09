@@ -1,8 +1,8 @@
 # AZ-204: Acing the Azure Developer Associate Exam 
 
-Welcome to Acing AZ-204. 
+Welcome to _Acing AZ-204_. 
 
-This is where you find the exercises for the course at [www.eltons.academy/az-204](https://www.eltons.academy/az-204).
+This is where you find the exercises for the training course at [www.eltons.academy/az-204](https://www.eltons.academy/az-204).
 
 These are hands-on resources to help you **really learn Azure** and **ace** the AZ-204 exam.
 
@@ -16,8 +16,8 @@ These are hands-on resources to help you **really learn Azure** and **ace** the 
  - [Set up the AZ command line, Git and Docker](./setup/README.md) 
  - Download your repo
     - Open a terminal (PowerShell on Windows; any shell on Linux/macOS) 
-    - Run: `git clone https://github.com/courselabs/azure.git`
-     - Open the folder: `cd azure`
+    - Run: `git clone https://github.com/eltons-academy/az-204.git`
+     - Open the folder: `cd az-204`
 - _Optional_
     - Install [Visual Studio Code](https://code.visualstudio.com) (free - Windows, macOS and Linux) - it's the best way to browse the repo and documentation
     - Install [PowerShell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell) (free - Windows, macOS and Linux) - for the best experience following scripts in the exercises
