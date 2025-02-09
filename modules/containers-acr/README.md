@@ -30,6 +30,12 @@ Start with a new Resource Group for the lab, using your preferred region:
 az group create -n labs-acr --tags course=az204 -l eastus
 ```
 
+Ensure your subscription is set up to use ACR:
+
+```
+az provider register --namespace Microsoft.ContainerRegistry
+```
+
 You'll need a unique name for your ACR instance. Store it in a variable for later use:
 
 ```
@@ -141,7 +147,7 @@ You will use ACR to store your own application images and also any third-party i
 
 Pushing and pulling images from another registry can be scripted with the `docker` commands, but ACR has a shortcut. The `import` command loads an image into your ACR instance, and the pushing and pulling all happens in Azure.
 
-📋 Import this image from GitHub into your ACR: `ghcr.io/eltons-academy/nginx:alpine-2502`. You can choose your own target image name.
+📋 Import this image from GitHub into your ACR: `ghcr.io/eltons-academy/nginx:alpine-2025`. You can choose your own target image name.
 
 <details>
   <summary>Not sure how?</summary>
@@ -155,7 +161,7 @@ az acr import --help
 You need to provide the name of your registry, the full reference of the image you want to import, and the target image name:
 
 ```
-az acr import -n $ACR_NAME --source ghcr.io/eltons-academy/nginx:alpine-2502 --image library/nginx:alpine-az204
+az acr import -n $ACR_NAME --source ghcr.io/eltons-academy/nginx:alpine-2025 --image library/nginx:alpine-az204
 ```
 
 </details><br/>
