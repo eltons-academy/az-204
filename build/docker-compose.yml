@@ -24,3 +24,8 @@ services:
     build:
       context: ../src/simple-web
 
+  random-logger:
+    image: ghcr.io/eltons-academy/random-logger:2025
+    build:
+      context: ../src/random-logger
+
