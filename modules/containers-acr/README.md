@@ -4,7 +4,7 @@ Open source applications are often published as container images on Docker Hub. 
 
 ## Reference
 
-- [Manage container images in Azure Container Registry](https://learn.microsoft.com/en-gb/training/modules/publish-container-image-to-azure-container-registry/) - Microsoft Learn
+- [Manage container images in Azure Container Registry](https://learn.microsoft.com/en-gb/training/modules/publish-container-image-to-azure-container-registry/) | Microsoft Learn
 
 - [Docker Hub overview](https://docs.docker.com/docker-hub/)
 
@@ -53,7 +53,7 @@ Start with the help:
 az acr create --help
 ```
 
-There are a lot more options than you see in the Portal. If you do use the Portal to create a registry you can set a lot of these in the management page.
+There are a lot more options than you see in the Portal. If you do use the Portal to create a registry you can set these in the management page.
 
 This creates a Basic-SKU registry:
 
@@ -61,7 +61,7 @@ This creates a Basic-SKU registry:
 az acr create -g labs-acr -l eastus --sku 'Basic' -n $ACR_NAME
 ```
 
-ACR names are stricter than most, so you might see an error if you try to use an illegal character.
+ACR names are stricter than most. You will get a `ResourceNameInvalid` error if you try to use an illegal character, or an `AlreadyInUse` error if that name is taken.
 
 </details><br/>
 
@@ -88,7 +88,7 @@ docker image tag docker.io/nginx:alpine "$ACR_NAME.azurecr.io/labs-acr/nginx:alp
 Now you have two tags for the Nginx image:
 
 ```
-docker image ls --filter reference=nginx --filter reference=*/labs-acr/nginx
+docker image ls --filter reference=nginx --filter reference='*/labs-acr/nginx'
 ```
 
 Your ACR tag and the Docker Hub tag both have the same image ID; tags are like aliases and one image can have many tags.
@@ -137,54 +137,101 @@ You can browse the app at http://localhost:8080. It's the standard Nginx app, bu
 
 ## Import an image 
 
-// TODO acr import
+You will use ACR to store your own application images and also any third-party images which you want to have control over. 
 
-## Build and Push a Custom Image
+Pushing and pulling images from another registry can be scripted with the `docker` commands, but ACR has a shortcut. The `import` command loads an image into your ACR instance, and the pushing and pulling all happens in Azure.
 
-// TODO - replace with acr build
-
-When you build an image you can include the registry domain in the tag. Run this to build the simple ASP.NET web app from the [Docker 101 lab](/labs/docker/README.md), including a version number in the image tag:
-
-```
-docker build -t  <acr-name>.azurecr.io/labs-acr/simple-web:6.0 src/simple-web
-```
-
-> It will build very quickly if you've built this image before, because Docker does a lot of caching
-
-📋 Create another tag for the same image, this time using `latest` as the version number instead of `6.0`.
+📋 Import this image from GitHub into your ACR: `ghcr.io/eltons-academy/nginx:alpine-2502`. You can choose your own target image name.
 
 <details>
   <summary>Not sure how?</summary>
 
-You can use the `tag` command to create a new tag for an image and change any part of the name, including the registry domain or verion number:
+Print the help:
 
 ```
-docker tag <acr-name>.azurecr.io/labs-acr/simple-web:6.0 <acr-name>.azurecr.io/labs-acr/simple-web:latest
+az acr import --help
+```
+
+You need to provide the name of your registry, the full reference of the image you want to import, and the target image name:
+
+```
+az acr import -n $ACR_NAME --source ghcr.io/eltons-academy/nginx:alpine-2502 --image library/nginx:alpine-az204
 ```
 
 </details><br/>
 
-List all of the images tagged with your ACR domain:
+You should have two images in ACR now. You can list the repositories:
 
 ```
-docker image ls <acr-name>.azurecr.io/*/*
+az acr repository list --name $ACR_NAME --output table
 ```
 
-You'll have two versions of your `simple-web` image. You can push both versions with one command:
+And the tags for a repository:
 
 ```
-docker push --all-tags <acr-name>.azurecr.io/labs-acr/simple-web
+az acr repository show-tags -n $ACR_NAME --repository labs-acr/nginx
 ```
+
+The default output is a JSON array of the image tags.
+
+> Image tags are just labels but they are usually used to identify the version of the application in the image.
+
+## Build and push your own image
+
+You can build images on your machine and push them to ACR with the Docker command line, but ACR can build your image for you.
+
+The `acr build` command works like `docker build`, except that it sends the folder with your Dockerfile and source code to Azure and provisions some compute to do the build for you.
+
+You'll see all the usual build ouput, but the commands are running in Azure with an ACR Task. When the build completes the image gets pushed to ACR.
+
+There's a Hello World application in the folder `src/hello-azure`:
+
+- [Dockerfile](src/hello-azure/Dockerfile) - runs a script to print some text
+
+📋 Build the image using ACR. You will need to give a name for your image and specify the path to the app folder.
+
+<details>
+  <summary>Not sure how?</summary>
+
+Print the help:
+
+```
+az acr build --help
+```
+
+The build command is very similar to `docker build` - you also need to set the ACR name:
+
+```
+az acr build --image labs-acr/hello-azure --registry $ACR_NAME ./src/hello-azure
+```
+
+</details><br/>
+
+> By default ACR will build an image targeted for Linux on Intel machines. Docker is multi-platform and you can specify ACR to target  Windows or Arm.
+
+You should find the build completes very quickly. ACR queues the build task and it runs on an agent from a pool. There is usually lots of capacity in the pool (and you can create your own agent pools).
 
 ## Run a one-off container
 
-// TODO acr run
+You can check your ACR build worked by running a container locally:
+
+```
+docker run "${ACR_NAME}.azurecr.io/labs-acr/hello-azure"
+```
+
+There is also the `acr run` command which lets you run a one-off container as an ACR task:
+
+```
+az acr run -r $ACR_NAME --cmd "${ACR_NAME}.azurecr.io/labs-acr/hello-azure" /dev/null
+```
+
+> The syntax looks odd because you can actually upload a source code folder and send the input to run command.
 
 ## Browse to ACR in portal  
 
 ACR is one service which can be easier to manage in the Portal than with the command line. 
 
-Browse to your ACR and open the _Repositories_ list. You'll see the images you pushed - what do the tags and manifests mean? Check out the other ACR features, webhooks and replications are things you might use.
+[Browse to your ACR](https://portal.azure.com/#browse/Microsoft.ContainerRegistry%2Fregistries) and open the _Repositories_ list. You'll see the images you pushed - what do the tags and manifests mean? Check out the other ACR features, webhooks and replications are things you might use.
 
 ## Lab
 
