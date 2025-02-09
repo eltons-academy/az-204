@@ -130,15 +130,17 @@ Start by creating a registry in the resource group:
 
 ```
 $ACR_NAME='<your-acr-name>'
-az acr create -g labs-acr -l eastus --sku 'Basic' -n $ACR_NAME
+az acr create -g labs-aci -l eastus --sku 'Basic' -n $ACR_NAME
 ```
+
+The source code and Dockerfile is in the folder `src/simple-web-windows`.
 
 📋 Build the image using ACR and call it `labs-aci/simple-web-windows`. You will need to give a name for your image and specify the path to the app folder, and also specify the platform to use.
 
 <details>
   <summary>Not sure how?</summary>
 
-Rememer the build command is very similar to `docker build`. You also need to set the ACR name and the platform:
+Remember the build command is very similar to `docker build`. You also need to set the ACR name and the platform:
 
 ```
 az acr build --image labs-aci/simple-web-windows --registry $ACR_NAME --platform windows ./src/simple-web-windows
@@ -148,23 +150,98 @@ az acr build --image labs-aci/simple-web-windows --registry $ACR_NAME --platform
 
 When the build completes you will have a Windows image stored in ACR - you can browse to it in the Portal to check. Now you can use that image to run a Windows container with ACI.
 
->>> TO HERE
+> Note that the Windows images are **very big**. They're based on Windows Server 2022, and the OS image is 4GB. Don't use Windows containers for modern .NET apps, they're best for migrating legacy .NET Framework apps.
+
+It will take a while to push the image, because of the size of the .NET Framework layers. When it's done, check the image is there:
+
+```
+az acr repository show-tags -n $ACR_NAME --repository labs-aci/simple-web-windows
+```
+
+It's a private image so you need to authenticate to access it - ACI doesn't automatically get permissions. The easiest way to authenticate is to generate a token which you can use as a password. ACR supports fine-grained tokens which only have access to specific repositories.
+
+```
+az acr token create -n aci-reader -r $ACR_NAME --repository labs-aci/simple-web-windows content/read metadata/read --query 'credentials.passwords[0].value'
+```
+
+> These are crendentials you can use with the Docker CLI or any other container platform. The username is the token name - `aci-reader` - and the password is the token output.
+
+📋 Run a Windows ACI container from the image in ACR, publishing port 80 to a public domain. You'll need to specify your registry domain and credentials.
+
+<details>
+  <summary>Not sure how?</summary>
+
+You can specify several `--registry` options to the `container create` command. In this case you need to set your ACR domain and the username and password from the token.
+
+```
+$DNS_LABEL='az204es003' # set your own here
+
+az container create -g labs-aci --name simple-web-windows --image "${ACR_NAME}.azurecr.io/labs-aci/simple-web-windows" --ports 80 --os-type Windows --cpu 1 --memory 1 --dns-name-label $DNS_LABEL --registry-login-server "${ACR_NAME}.azurecr.io" --registry-username aci-reader --registry-password '<token-password>'
+```
+
+</details><br/>
+
+The user experience to create and manage containers with ACI is the same for all platforms, and for any type of application. Open the Portal and you will see the same details for the Windows container that you did for Linux (and you can confirm that the image pull time will have taken a lot longer).
+
+The apps we've used so far have been very simple, but there are additional features of ACI which make them suitable for a wide range of apps.
 
 ## Mount Azure Files as container storage
 
---azure-file-volume-account-name
+Storage is virtualized in containers and the default filesystem has the same lifecycle as the container. If your app writes files to disk, when the container is deleted or replaced then the data is lost.
+
+You can mount external storage into containers to separate the data lifecycle from the compute lifecycle, and Azure supports that with Azure Files storage.
+
+We'll expolore Azure Files in more detail later. For now it's enough to know that you can create a Storage Account and a File Share and that share can be mounted in the container filsystem in ACI.
+
+Create your Azure Files share:
+
+```
+$SA_NAME='<your-unique-name>'
+az storage account create -g labs-aci --sku Standard_LRS -n $SA_NAME
+az storage share create -n logs --account-name $SA_NAME
+```
+
+Find your Storage Account in the Portal, open the Storage Browser and find the file share called `logs`. It's an empty folder right now.
+
+To mount that folder in a container you need the security key to access the Storage Account:
+
+```
+az storage account keys list --account-name $SA_NAME -o table
+```
+
+There are two keys - both work in the same way. They give admin access to the Storage Account so you need to be careful how you use them. We're using them as a simple way to connect storage to ACI.
+
+📋 Run a Linux ACI container from the image `ghcr.io/eltons-academy/random-logger:2025`. There are no ports to publish, but you will need to mount your new Azure Files share to the path `/random` in the continer.
+
+<details>
+  <summary>Not sure how?</summary>
+
+Files are mounted with the `--azure-file-volume` options - you need to specify the Storage Account name and key, the name of the share and the target path to mount in the container filesystem.
+
+```
+az container create -g labs-aci --name random-logger --image ghcr.io/eltons-academy/random-logger:2025 --os-type Linux --cpu 0.1 --memory 0.1 --azure-file-volume-account-name $SA_NAME --azure-file-volume-share-name logs --azure-file-volume-mount-path /random --azure-file-volume-account-key <your-account-key>
+```
+
+</details><br/>
+
+When the container runs it writes a random number to the file in `/random/logs.txt`. Find that file in your Azure Files share and select the _Edit_ option to see the contents.
+
+> You'll see lots of lines. Check the container in the Portal and you will see it keeps restarting. 
+
+The restarts happen because the script in the container writes a line then exits. That causes the container to end, and then ACI immediately creates a replacement. The default behaviour is just to keep restarting, because ACI tries to keep your app running.
+
+You can configure that too, but our command lines are getting hard to manage. You can also create ACI instances from YAML files.
 
 ## Deploy a multi-container app
+
+>> TO HERE
 
 - YAML with secureValue - secret
 - can include (multiple) volume mounts in yaml
 
 ## Lab
 
-- task with restart policy?
-You can migrate all your .NET apps to containers, but you'll need to use Windows containers for older .NET Framework apps. Docker Desktop on Windows supports Linux and Windows containers (you can switch from the Docker icon in the taskbar), and so does ACI.
-
-The [simple-web image](https://hub.docker.com/r/courselabs/simple-web/tags) has been published with Windows and Linux variants. Run an ACI container from the Windows image version, how does it differ from the Linux version? Then see what happens if you try to run the Linux image which has been compiled for ARM processors instead of Intel/AMD.
+- task with restart policy
 
 > Stuck? Try [hints](hints.md) or check the [solution](solution.md).
 
@@ -172,16 +249,8 @@ ___
 
 ## Cleanup
 
-You can delete the RG for this lab to remove all the resources, including the containers you created with the Docker CLI:
+You can delete the RG for this lab to remove all the resources, including the registry and containers:
 
 ```
 az group delete -y --no-wait -n labs-aci
-```
-
-Now change your Docker context back to your local Docker Desktop, and remove the lab context:
-
-```
-docker context use default
-
-docker context rm labs-aci
 ```
