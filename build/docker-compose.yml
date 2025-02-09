@@ -1,0 +1,26 @@
+services:
+  hello-azure:
+    image: ghcr.io/eltons-academy/hello-azure
+    build:
+      context: ../src/hello-azure
+
+  nginx:
+    image: ghcr.io/eltons-academy/nginx:alpine-2025
+    build:
+      context: ../src/nginx
+
+  rng-api:
+    image: ghcr.io/eltons-academy/rng-api:2025
+    build:
+      context: ../src/rng/Numbers.Api
+
+  rng-web:
+    image: ghcr.io/eltons-academy/rng-web:2025
+    build:
+      context: ../src/rng/Numbers.Web
+
+  simple-web:
+    image: ghcr.io/eltons-academy/simple-web:2025
+    build:
+      context: ../src/simple-web
+

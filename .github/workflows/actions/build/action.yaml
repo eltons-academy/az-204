@@ -1,0 +1,10 @@
+name: 'Build'
+description: 'Build & push images'
+runs:
+  using: "composite"
+  steps:
+    - name: Build and push images
+      working-directory: build
+      shell: pwsh
+      run: |
+        ./build.ps1

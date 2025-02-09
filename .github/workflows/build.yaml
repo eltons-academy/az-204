@@ -1,0 +1,23 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "src/**"
+      - "build/**"
+      - ".github/workflows/build.yaml"
+
+jobs:
+  images-linux-amd64:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Registry login    
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+      - uses: actions/checkout@master
+      - uses: ./.github/actions/build
