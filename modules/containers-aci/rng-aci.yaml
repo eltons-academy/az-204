@@ -5,24 +5,26 @@ properties:
   containers:
   - name: rng-api
     properties:
-      image: TODO/rng-api:21.05
+      image: ghcr.io/eltons-academy/rng-api:2025
       environmentVariables:
       - name: ASPNETCORE_HTTP_PORTS
         value: 5000
       resources:
         requests:
-          cpu: 0.5
-          memoryInGb: 0.5
+          cpu: 0.2
+          memoryInGb: 0.2
   - name: rng-web
     properties:
-      image: TODO/rng-web:21.05
+      image: ghcr.io/eltons-academy/rng-web:2025
       environmentVariables:
+      - name: ASPNETCORE_HTTP_PORTS
+        value: 80
       - name: RngApi__Url
-        value: http://localhost:5000/rng
+        secureValue: http://localhost:5000/rng
       resources:
         requests:
-          cpu: 1
-          memoryInGb: 1
+          cpu: 0.5
+          memoryInGb: 0.5
       ports:
       - port: 80
   osType: Linux

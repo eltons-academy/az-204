@@ -211,7 +211,7 @@ az storage account keys list --account-name $SA_NAME -o table
 
 There are two keys - both work in the same way. They give admin access to the Storage Account so you need to be careful how you use them. We're using them as a simple way to connect storage to ACI.
 
-📋 Run a Linux ACI container from the image `ghcr.io/eltons-academy/random-logger:2025`. There are no ports to publish, but you will need to mount your new Azure Files share to the path `/random` in the continer.
+📋 Run a Linux ACI container called `random-logger` from the image `ghcr.io/eltons-academy/random-logger:2025`. There are no ports to publish, but you will need to mount your new Azure Files share to the path `/random` in the continer.
 
 <details>
   <summary>Not sure how?</summary>
@@ -228,20 +228,59 @@ When the container runs it writes a random number to the file in `/random/logs.t
 
 > You'll see lots of lines. Check the container in the Portal and you will see it keeps restarting. 
 
-The restarts happen because the script in the container writes a line then exits. That causes the container to end, and then ACI immediately creates a replacement. The default behaviour is just to keep restarting, because ACI tries to keep your app running.
+The restarts happen because the script in the container writes a line then exits. When the program exits the container ends, and then ACI immediately creates a replacement. The default behaviour is just to keep restarting, because ACI tries to keep your app running.
 
 You can configure that too, but our command lines are getting hard to manage. You can also create ACI instances from YAML files.
 
 ## Deploy a multi-container app
 
->> TO HERE
+ACI supports YAML for modelling your container applications. We'll explore that along wih a couple of other features:
 
-- YAML with secureValue - secret
-- can include (multiple) volume mounts in yaml
+- containers are actually created in _container groups_ which means you can have more than one container, and they share the same netwrok so they can communicate over `localhost`
+
+- configuration values can be set as environment variables - they can be plain text values which you can see when you query the resource, and secure values - which you can't
+
+We'll deploy a simple distributed app which runs a website for generating random numbers, with the numbers provided by a backend REST API:
+
+```mermaid
+
+architecture-beta
+    group rng(cloud)[RNG]
+    service web(server)[Website] in rng
+    service api(server)[API] in rng
+    api:L -- R:web
+```
+
+ACI does not use the Docker Compose format (there used to be a Docker integration with ACI [but it's been deprecated](https://docs.docker.com/retired/#docker-cloud-integrations)). The YAML is a custom format which borrows from the Kubernetes API syntax:
+
+- [rng-aci.yaml](/modules/containers-aci/rng-aci.yaml) - specification for the random number app in ACI
+
+This YAML spec includes two containers in the group, one is publicly available on port 80, the other is internal to the container group on port 5000. You can also include Azure Files volume mounts in the YAML.
+
+📋 Deploy the random number app from the YAML file in `modules/containers-aci/rng-aci.yaml`. Check the public URL and confirm the application is working correctly.
+
+<details>
+  <summary>Not sure how?</summary>
+
+It's the same `container create` command. You need to set the resource group and the path to the YAML file:
+
+```
+az container create -g labs-aci --file modules/containers-aci/rng-aci.yaml
+```
+
+</details><br/>
+
+> Multiple containers in one ACI group is only supported for Linux containers at the moment.
 
 ## Lab
 
-- task with restart policy
+Remember we created an ACI container which kept writing random numbers to a file in Azure Files? It's probably still there, writing away. That's no good - the container exited but there was no error code, so it shouldn't have been restarted.
+
+Three parts to this lab: 
+
+- delete the `random-logger` ACI container
+- delete the `logs.txt` file in the Azure Files share
+- create a new ACI container based on the same spec as `random-logger`, but configured not to restart unless the container exits with an error code
 
 > Stuck? Try [hints](hints.md) or check the [solution](solution.md).
 
