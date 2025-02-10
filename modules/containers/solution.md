@@ -21,3 +21,5 @@ docker run -d -p 8084:8080 -e App__Environment=PROD simple-web
 > You need to use a different port, because only one container can listen on each port
 
 Browse to http://localhost:8084/ and you'll see the updated value.
+
+> [Back to the lab](README.md#lab)

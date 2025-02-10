@@ -1,36 +1,23 @@
 # Lab Solution
 
-You can use the `az` command with the multi-arch image tag and set the OS:
+Delete the existing container:
 
 ```
-az container create -g labs-aci --name simple-web-win --image courselabs/simple-web:6.0 --ports 80 --os Windows --dns-name-label <aci-win-dns>
+az container delete -g labs-aci --name random-logger -y
 ```
 
-ACI creates a Linux container if you don't specify the OS, so if you use the Windows image tag without telling ACI that it's Windows you'll get an error:
+You can manage files in a share using the [az storage file](https://learn.microsoft.com/en-us/cli/azure/storage/file?view=azure-cli-latest) commands:
 
 ```
-# this will error saying the container OS doesn't match the image OS
-az container create -g labs-aci --name simple-web-win2 --image courselabs/simple-web:6.0-windows-amd64 --ports 80 --dns-name-label <aci-win-dns2>
+az storage file delete --path log.txt --share-name logs --account-name $SA_NAME --account-key <your-account-key>
 ```
 
-So you need to set the OS too:
+And now create the container, specifying a `restart-policy` of `OnFailure` - which means the container will only be restarted if it exits with a failure code:
 
 ```
-az container create -g labs-aci --name simple-web-win2 --image courselabs/simple-web:6.0-windows-amd64 --ports 80 --os Windows --dns-name-label <aci-win-dns2>
+az container create -g labs-aci --name random-logger --image ghcr.io/eltons-academy/random-logger:2025 --os-type Linux --cpu 0.1 --memory 0.1 --restart-policy OnFailure --azure-file-volume-account-name $SA_NAME --azure-file-volume-share-name logs --azure-file-volume-mount-path /random --azure-file-volume-account-key <your-account-key>
 ```
 
-There's no ARM64 support in ACI, but the image CPU isn't verified when the container is created. ACI will let you run a container:
+The container will start and run, write one entry to the file and exit. Azure won't restart it, so in the Portal you should see one random number in the file and the ACI status will be _Suceeded_.
 
-```
-az container create -g labs-aci --name simple-web-arm --image courselabs/simple-web:6.0-linux-arm64 --ports 80 --dns-name-label <aci-arm-dns>
-```
-
-But the container exits as soon as it starts. Check the logs and you'll see a message about the exec format - this tells you there is a CPU mismatch between the compiled binary and the runtime:
-
-```
-az container logs -g labs-aci -n simple-web-arm
-```
-
-Returns:
-
-*standard_init_linux.go:228: exec user process caused: exec format error*
+> [Back to the lab](README.md#lab)

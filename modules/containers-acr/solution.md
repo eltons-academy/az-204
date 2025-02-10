@@ -19,3 +19,5 @@ az acr repository delete --name $acrName --image $imageName --yes --only-show-er
 ```
 
 There's a sample script in PowerShell here: [prune-acr.ps1](./lab/prune-acr.ps1).
+
+> [Back to the lab](README.md#lab)

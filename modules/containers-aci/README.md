@@ -257,26 +257,28 @@ ACI does not use the Docker Compose format (there used to be a Docker integratio
 
 This YAML spec includes two containers in the group, one is publicly available on port 80, the other is internal to the container group on port 5000. You can also include Azure Files volume mounts in the YAML.
 
-📋 Deploy the random number app from the YAML file in `modules/containers-aci/rng-aci.yaml`. Check the public URL and confirm the application is working correctly.
+📋 Deploy the random number app to an ACI group called `rng` from the YAML file in `modules/containers-aci/rng-aci.yaml`. Check the URL and confirm the application is working correctly.
 
 <details>
   <summary>Not sure how?</summary>
 
-It's the same `container create` command. You need to set the resource group and the path to the YAML file:
+It's the same `container create` command. You need to set the resource group, ACI name and the path to the YAML file:
 
 ```
-az container create -g labs-aci --file modules/containers-aci/rng-aci.yaml
+az container create -g labs-aci -n rng --file modules/containers-aci/rng-aci.yaml
 ```
 
 </details><br/>
 
 > Multiple containers in one ACI group is only supported for Linux containers at the moment.
 
+The YAML spec contains the DNS label - remember this needs to be globally unique. If you get a `DnsNameLabelAlreadyTaken` error, you'll need to edit the YAML and try again.
+
 ## Lab
 
 Remember we created an ACI container which kept writing random numbers to a file in Azure Files? It's probably still there, writing away. That's no good - the container exited but there was no error code, so it shouldn't have been restarted.
 
-Three parts to this lab: 
+You'll fix that in this lab. There are three parts: 
 
 - delete the `random-logger` ACI container
 - delete the `logs.txt` file in the Azure Files share
