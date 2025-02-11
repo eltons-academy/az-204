@@ -40,7 +40,7 @@ These are hands-on resources to help you **really learn Azure** and **ace** the 
 | 1.1.3 | [Run containers by using Azure Container Instance](/labs/aci/README.md) |
 | 1.1.4 | [Create solutions by using Azure Container Apps](/labs/aca/README.md) |
 
-### Implement Azure App Service Web Apps
+### 1.2 Implement Azure App Service Web Apps
 
 - Create an Azure App Service Web App
 - Configure and implement diagnostics and logging
