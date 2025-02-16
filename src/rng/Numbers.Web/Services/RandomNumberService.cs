@@ -14,7 +14,12 @@ namespace Numbers.Web.Services
         public RandomNumberService(IConfiguration config)
         {
             _config = config;
-            ApiUrl = _config["RngApi:Url"];
+            // allow for simple name to get around ACA secret issue: https://github.com/microsoft/azure-container-apps/issues/495
+            ApiUrl = _config["RngApiUrl"];
+            if (string.IsNullOrEmpty(ApiUrl))
+            {
+                ApiUrl = _config["RngApi:Url"];
+            }
         }
 
         public int GetNumber()
