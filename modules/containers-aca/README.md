@@ -11,9 +11,13 @@
 - [`az containerapp` commands](https://learn.microsoft.com/en-us/cli/azure/containerapp?view=azure-cli-latest)
 
 
-## Explore Azure Container Instances
+## Explore Azure Container Apps
 
-Open the Portal ...
+Open the Portal, create, search container app, create
+
+- container app environment
+- container details - registry, compute
+- ingress - internal, external, transport
 
 
 ## Create an ACA container with the CLI
