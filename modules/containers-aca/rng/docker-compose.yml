@@ -1,0 +1,21 @@
+services:
+  numbers-api:
+    image: ghcr.io/eltons-academy/rng-api:2025
+    ports:
+      - "8081:8080"
+    networks:
+      - app-net
+
+  numbers-web:
+    image: ghcr.io/eltons-academy/rng-web:2025
+    environment:
+      - RngApi__Url=http://numbers-api:8080/rng
+    depends_on:
+      - numbers-api
+    ports:
+      - "8080:8080"
+    networks:
+      - app-net
+
+networks:
+  app-net: {}
