@@ -96,6 +96,8 @@ az containerapp revision list -g labs-aca -n rng-web -o table
 
 > try web again, OK
 
+> browse to portal, check aca env & apps; revisions, scale & log stream
+
 ## Require auth
 
 ```
@@ -167,5 +169,99 @@ az containerapp revision list -g labs-aca -n rng-web -o table
 ```
 
 
+## Dapr for mTLS 
+
+- add mtls & service discovery with no code changes
+
+register components:
+
+```
+az containerapp env dapr-component set -g labs-aca -n rng --dapr-component-name rng-web --yaml modules/containers-aca/dapr/rng-web-component.yaml
+az containerapp env dapr-component set -g labs-aca -n rng --dapr-component-name rng-api --yaml modules/containers-aca/dapr/rng-api-component.yaml
+```
+
+enable dapr:
+
+```
+az containerapp dapr enable -g labs-aca -n rng-api --dapr-app-id rng-api --dapr-app-port 8080
+
+az containerapp dapr enable -g labs-aca -n rng-web --dapr-app-id rng-web --dapr-app-port 8080 --dapr-enable-api-logging
+```
+
+set web to use dapr sidecar:
+
+```
+az containerapp update -g labs-aca -n rng-web --set-env-vars "RngApi__Url=http://localhost:3500/v1.0/invoke/rng-api/method/rng"
+
+az containerapp revision list -g labs-aca -n rng-web -o table
+```
+
+- test
+
+remove ingress from api - all coms via dapr:
+
+```
+az containerapp ingress disable -g labs-aca -n rng-api 
+```
+
+> can add resiliency policy for retries, timeout etc https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-resiliency?tabs=cli
 
 
+
+## Build and Deploy ACA from ACR
+
+
+Compose integration:
+
+- [docker-compose-build.yml](/src/rng/docker-compose-build.yml)
+
+```
+cd src/rng
+
+az containerapp compose create -g labs-aca --environment rng2 -f docker-compose-build.yml
+```
+
+> creates loga, acr etc.
+
+> ACR credentials stored as secret
+
+```
+az containerapp secret list -g labs-aca -n numbers-web 
+```
+
+```
+az containerapp show -g labs-aca -n numbers-web --query 'properties.template.containers[0].env'
+```
+
+> already set from Compose file
+
+```
+az containerapp show -g labs-aca -n numbers-web --query  'properties.configuration.ingress.fqdn'
+```
+
+> try app, api call fails - defaults to external ingress
+
+```
+az containerapp ingress update -g labs-aca -n numbers-api --type internal --transport http --target-port 8080 --allow-insecure true -o table
+
+az containerapp update -g labs-aca -n numbers-web --set-env-vars "RngApi__Url=http://numbers-api/rng"
+```
+
+# lab 
+
+scale settings so api is always available; test environment - max 3 containers, minimum cpu - api & web will work with 0.1 of each
+
+also set scale so up is triggered with conc 20 for api and conc 5 for web - test to verify up & down
+
+
+> Stuck? Try [hints](hints.md) or check the [solution](solution.md).
+
+___
+
+## Cleanup
+
+You can delete the RG for this lab to remove all the resources, including the registry and containers:
+
+```
+az group delete -y --no-wait -n labs-aca
+```

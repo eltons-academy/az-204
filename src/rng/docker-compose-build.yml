@@ -1,0 +1,23 @@
+services:
+  numbers-api:
+    build:
+      context: ./Numbers.Api
+    ports:
+      - "8081:8080"
+    networks:
+      - app-net
+
+  numbers-web:
+    build:
+      context: ./Numbers.Web
+    environment:
+      - RngApi__Url=http://numbers-api:8080/rng
+    depends_on:
+      - numbers-api
+    ports:
+      - "8080:8080"
+    networks:
+      - app-net
+
+networks:
+  app-net: {}
