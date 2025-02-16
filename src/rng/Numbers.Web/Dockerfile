@@ -11,7 +11,7 @@ RUN dotnet publish -c Release /p:Version=$BUILD_VERSION -o /out Numbers.Web.cspr
 # app image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
 
-ENV RngApiUrl=http://numbers-api/rng
+ENV RngApi__Url=http://numbers-api/rng
 
 ENTRYPOINT ["dotnet", "/app/Numbers.Web.dll"]
 
