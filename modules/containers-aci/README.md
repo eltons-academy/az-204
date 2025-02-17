@@ -85,6 +85,14 @@ az container logs -g labs-aci -n simple-web
 
 You'll see the ASP.NET application logs from the container.
 
+---
+🧭 Explore your container instance in the Azure Portal - from the [ACI list](https://portal.azure.com/#browse/Microsoft.ContainerInstance%2FcontainerGroups). Here are some key points:
+
+- _Overview_ where you can stop and restart containers
+- _Settings...Containers_ to show events and logs, and connect to a shell
+- _Monitoring...Metrics_ to graph CPU and memory use
+---
+
 ## Setting application configuration
 
 Using non-standard ports is fine for dev and test environments, but in production we need to use the HTTP standards (of course we should use HTTPS, but that's not provided by ACI out of the box).

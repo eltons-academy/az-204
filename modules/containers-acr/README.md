@@ -73,6 +73,16 @@ ACR names are stricter than most. You will get a `ResourceNameInvalid` error if 
 
 When the command completes you have your own registry, available at the domain name `<your-acr-name>.azurecr.io` - you'll see the full name in the `loginServer` field in the output.
 
+---
+🧭 Explore ACR in the Azure Portal from the [Container Registry list](https://portal.azure.com/#browse/Microsoft.ContainerRegistry%2Fregistries). Check through the blades - here are some of the key things to note:
+
+- _Settintgs...Properties_ for pricing plan and admin user
+- _Services...Repositories_ for your image lists
+- _Services...Connected Registries_ 
+- _Repository Permissions...Tokens_ for fine-grained access to non-Azure users
+- _Monitoring...Metrics_ to graph storage used for your images
+---
+
 ## Pull and push images to ACR
 
 Docker image names can include a registry domain. The default registry is Docker Hub (`docker.io`) so you don't need a domain for that - the full name for the image `nginx:alpine` is actually `docker.io/nginx:alpine`.

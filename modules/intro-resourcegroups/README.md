@@ -72,6 +72,16 @@ az group create -n labs-rg-2 -l westus2 --tags course=az204
 
 When you create a resource with the CLI it waits until resource is ready and then prints the details.
 
+---
+🧭 Explore the new Resource Group in the Azure Portal - this link opens your [Resource Group list](https://portal.azure.com/#browse/resourcegroups). Check through the blades - even though the RG doesn't do anything, there's a lot you can do with the resources in the group (When you have some):
+
+- _Overview_ basic details, list of resources, option to delete resources
+- _Access Control (IAM)_ for setting access permissions for users and groups
+- _Resource visualizer_ gives you a graphical representation of the resources
+- _Cost Management_ for spending forecasts and setting budgets
+- _Monitoring...Advisor Recommendations_ will show suggestions for best practices
+---
+
 ## Manage Resource Groups
 
 The `az` command line works in a consistent way for all resources. You create, list, show and delete them using the same verbs.

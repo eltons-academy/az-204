@@ -2,6 +2,8 @@
 
 Azure Container Apps (ACA) is a managed container platform which abstracts away the infrastructure layer. You can run complex distributed applications with ACA with high-value features out of the box, including HTTPS provisioning, auto-scale, scale to zero, turnkey authentication, observability and more. ACA runs standard Docker container images - currently limited to Linux on Intel - and uses the power of Kubernetes under the hood, wrapped in a much simpler user experience.
 
+In thexe exercises we'll start with a simple distributed app running across two containers and gradually extend it with ACA features, including end-user authentication, encrypted traffic between the components, and a simple approach to building and deploying apps from source.
+
 ## Reference
 
 - [Implement Azure Container Apps](https://learn.microsoft.com/en-gb/training/modules/implement-azure-container-apps/) | Microsoft Learn
@@ -43,7 +45,17 @@ Now create a Container App _Environment_. This is a grouping of Container Apps w
 az containerapp env create --name rng -g labs-aca
 ```
 
-> You'll see this also create a Log Analytics Workspace. This is a service for collecting, storing and querying log data and metrics. ACA automatically wires up container logs to write to Log Analytics.
+You'll see this also create a Log Analytics Workspace. This is a service for collecting, storing and querying log data and metrics. ACA automatically wires up container logs to write to Log Analytics.
+
+---
+🧭 Explore your environment in the Azure Portal - from the [ACA environments list](https://portal.azure.com/#browse/Microsoft.App%2FmanagedEnvironments). Here are some key points:
+
+- _Overview_ shows the static IP address for the environment
+- _Settings...Workload profiles_ to create a reusable compute profile
+- _Ingress...Custom DNS suffix_ to have your own DNS name instead of a random one
+- _Apps_ lists all the container apps in the environment
+
+---
 
 Now you can use `az containerapp create` to create a new Container App in the environment.
 
@@ -69,7 +81,7 @@ az containerapp create --name rng-api --environment rng -g labs-aca --image ghcr
 When your Container App is running it will be allocated a public DNS name. You can query the resource to print just the domain name, and store the result in a variable:
 
 ```
-$RNG_API = az containerapp show -n rng-api -g labs-aca --query 'properties.configuration.ingress.fqdn' -o tsv
+$RNG_API=$(az containerapp show -n rng-api -g labs-aca --query 'properties.configuration.ingress.fqdn' -o tsv)
 ```
 
 This is a REST API which generates a random number. Test it with an HTTP request and you should see a number:
@@ -105,6 +117,19 @@ az containerapp logs show -n rng-api -g labs-aca
 ```
 
 </details><br/>
+
+---
+🧭 Explore your container app in the Azure Portal - from the [ACA list](https://portal.azure.com/#browse/Microsoft.App%2FcontainerApps). Here are some key points:
+
+- _Overview_ for a quick view of properties and monitoring graphs
+- _Application...Revisions and replicas_ to drill into revisions and running containers
+- _Application...Containers_ to see the container setup including environment variables and health probes
+- _Settings...Deployment_ to configure CI/CD from a Git repo
+- _Settings...Development stack_ to opt in to language-based features
+- _Monitoring...Log stream_ to print live logs from a container
+- _Monitoring...Console_ to connect to a shell session in a container
+
+---
 
 This is just one part of the full solution, next we'll add a Web UI container.
 
@@ -186,88 +211,199 @@ az containerapp update -g labs-aca -n rng-web --set-env-vars "RngApi__Url=https:
 </details><br/>
 
 
-wait:
+When you make a change to a container app it gets implemented as a new revision, and when the replica(s) in the revision are ready then ingress traffic is shifted to them. Check the revision list to see when the new revision is receiving all traffic:
 
 ```
 az containerapp revision list -g labs-aca -n rng-web -o table
 ```
 
-> try web again, OK
+> Now if you try the web app again, it will connect to the API and work correctly.
 
-> browse to portal, check aca env & apps; revisions, scale & log stream
+---
+🧭 Explore your web container app in the Azure Portal and open _Application...Revisions and replicas_
 
-## Require auth
+- you may see two active revisions, or one may be inactive
+- switch the _Revision mode_ to _Multiple_ and you can activate both revisions
+- with more than one active revision you can split the traffic between them
+- switch back to _Single_ revision mode
+---
+
+## Enable authentication for the web app
+
+ACA supports turnkey authentication and authorization. You can integrate with multiple identity providers - including Microsoft, GitHub, Apple, Google and OpenID Connect. 
+
+You don't need any code changes to add authentication to your app; the auth flow sits before your application and only sends requests when users have a validated token from a supported identity provider.
+
+Auth is not enabled by default:
 
 ```
 az containerapp auth show -g labs-aca -n rng-web
 ```
 
-MSID needs app registration - more info to come in auth modules:
+We'll integrate with Microsoft's identity provider. To do that we need to create a few identity resources - these will get their own module later, so don't worry too much about what's happening here.l
 
 ```
-$APP_ID = az ad app create --display-name rng-web --enable-id-token-issuance true --web-redirect-uris https://rng-web.prouddesert-e1fd4b6f.westus2.azurecontainerapps.io/.auth/login/aad/callback
---query id -o tsv
+# store your web app's callback URL:
+$RNG_WEB=$(az containerapp show -n rng-web -g labs-aca --query 'properties.configuration.ingress.fqdn' -o tsv)
+$WEB_CALLBACK_URL="https://$RNG_WEB/.auth/login/aad/callback"
+
+# create an app registration to allow the web app to use Microsoft ID:
+$APP_ID=$(az ad app create --display-name rng-web --enable-id-token-issuance true --web-redirect-uris $WEB_CALLBACK_URL --query id -o tsv)
 ```
 
-get app reg client id:
+Now we have the ID for the app registration, we need a couple of other bits of information:
 
 ```
-az ad app show --id <app-id> # 14569933-000c-41b4-a7cc-e114cae7c9ca
-
+# store the app client ID:
 $CLIENT_ID = az ad app show --id $APP_ID --query appId -o tsv
-```
 
-get tenant id:
-
-```
+# and the subscription's tenant ID:
 $TENANT_ID = az account show --query tenantId -o tsv
 ```
 
-register & require auth
+That's everything we need, but this next bit might take some figuring out...
+
+📋 Add Microsoft auth to the web container app, using the client ID from the app registration and the tenant ID as your token issuer. Then update the container app to require authentication.
+
+<details>
+  <summary>Not sure how?</summary>
+
+
+I don't blame you :) 
+
+You can start digging into the docs:
 
 ```
-az containerapp auth show -g labs-aca -n rng-web
+az containerapp auth --help
 
+# which will lead you to:
+az containerapp auth microsoft --help
+
+# and:
+az containerapp auth update --help
+```
+
+Put it all together:
+
+```
+# configure Microsoft as an identity provider:
 az containerapp auth microsoft update -g labs-aca -n rng-web --client-id $CLIENT_ID --issuer "https://sts.windows.net/$TENANT_ID/"
 
+# requre auth for the app:
 az containerapp auth update -g labs-aca -n rng-web --redirect-provider azureactivedirectory --action RedirectToLoginPage
 ```
 
+</details><br/>
 
-## Hide the API and use secrets for config
+---
+🧭 Explore your web container app in the Azure Portal and open _Settings...Authentication_
+
+- you should see that auth is required and unauthenticated users get redirected to the login page
+- click _Edit_ to see how you can alter the auth requirements
+- Microsoft is configured as an identity provider
+- click _Add Provider_ and you get a guided experience for adding another identity provider
+---
+
+Browse to your app in a private browser window and you will be redirected to Microsoft's login page. When you authenticate you see the same app - there's nothing in the app code or config to support authentication.
+
+## Restrict API access and use secrets for config
+
+We're progressively making our app more production ready. Right now the UI requires authentication, but the API is publicly available. For this app we want the API to be an internal component, only accessible to the web app.
+
+ACA lets you configure ingress to be internal so communication is restricted to apps in the same container environment.
+
+Print the current ingress setup for the API app:
 
 ```
 az containerapp ingress show -g labs-aca -n rng-api -o table
+```
 
+External ingress with secure transport is what gives the API a public HTTPS URL.
+
+📋 Update the API container app to use internal ingress over plain HTTP. How does the FQDN change?
+
+<details>
+  <summary>Not sure?</summary>
+
+The `ingress update` command is the one we need:
+
+```
+az containerapp ingress update --help
+```
+
+Setting ingress to internal doesn't automatically do the other things we need, so we need to explicitly set the transport, the security flag and the target port:
+
+```
 az containerapp ingress update -g labs-aca -n rng-api --type internal --transport http --target-port 8080 --allow-insecure true -o table
 ```
 
-> fqdn changes to .internal. but we can use simple name
+The DNS name changes to include `.internal`. Now we need to change the web app configuration again to use the new URL - but we don't need the FQDN. Container apps within the same environment can access each other using just the app name.
 
-wait:
+</details><br/>
+
+We could update the environment variable we set earlier to use the new URL, but let's say this is sensitive data so we want to store it in a secret instead.
+
+📋 Create a secret in the web container app, called `rng-api-url` with the value `http://rng-api/rng`.
+
+<details>
+  <summary>Not sure how?</summary>
+
+Secrets have their own command group:
 
 ```
-az containerapp revision list -g labs-aca -n rng-api -o table
+az containerapp secret --help
+
+az containerapp secret set --help
 ```
 
-> try app, fails again
+Note that secret names are very strict, they can only include lowercase letters, numbers and hyphens:
 
 ```
 az containerapp secret set -g labs-aca -n rng-web --secrets "rng-api-url=http://rng-api/rng"
 ```
 
-> secret name != env var name, strict names can be remapped
+The output state the app needs to be restarted - but we're going to make an update which will cause a new revision anyway.
 
-> would need to do revision restart but we need to update which will do that anyway
+</details><br/>
+
+Secrets are created at the container app level and they live outside of any revisions (unlike environment variables which are part of the revision). But secrets aren't automatically mapped into containers, you need to update the container app to explicitly include the secret value as an environment variable.
+
+📋 Update the container web app to use the value from the secret `rng-api-url` in the environment variable `RngApi__Url`. Does the change happen immediately?
+
+<details>
+  <summary>Not sure?</summary>
+
+We've already run a similar command to set environment variables, but the documentation explains how to link a variable to a secret:
+
+```
+az containerapp update --help
+```
+
+You include `secretref:` to load a named environment variable from a secret in the container app:
 
 ```
 az containerapp update -g labs-aca -n rng-web --set-env-vars "RngApi__Url=secretref:rng-api-url"
-
-az containerapp revision list -g labs-aca -n rng-web -o table
 ```
 
+This creates a new revision so you need to wait for it to roll out before the change is ready.
 
-## Dapr for mTLS 
+</details><br/>
+
+Try the app and it should be working again - but now the front end and back end are secured with appropriate controls.
+
+---
+🧭 Explore your container apps in the Azure Portal.
+
+- in the web app check _Settings...Secrets_ - you can view and edit the secret
+- in _Application...Containers_ you will see the environment variable references the secret
+- in the API app check _Settings...Ingress_ to see how the internal setup is shown
+---
+
+## Dapr for mTLS
+
+There's one other big feature of ACA: integration with the [Distributed Application Runtime (Dapr)](https://dapr.io). Dapr is a CNCF project which provides building blocks for implementing distributed applications, with features like service discovery, asynchronous messaging, workflows and more. 
+
+>> HERE
 
 - add mtls & service discovery with no code changes
 
@@ -345,7 +481,7 @@ az containerapp ingress update -g labs-aca -n numbers-api --type internal --tran
 az containerapp update -g labs-aca -n numbers-web --set-env-vars "RngApi__Url=http://numbers-api/rng"
 ```
 
-# lab 
+## Lab 
 
 scale settings so api is always available; test environment - max 3 containers, minimum cpu - api & web will work with 0.1 of each
 
