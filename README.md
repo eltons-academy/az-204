@@ -10,6 +10,10 @@ These are hands-on resources to help you **really learn Azure** and **ace** the 
 
 - [AZ-204 Skills Measured (15 January 2025)](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-204#skills-measured-as-of-january-15-2025)
 
+- [AZ-204 Learning Path](https://learn.microsoft.com/en-us/training/courses/az-204t00) | Microsoft Learn
+
+- [Azure Developer Associate Certification](https://learn.microsoft.com/en-us/credentials/certifications/azure-developer/?source=recommendations&practice-assessment-type=certification)
+
 ## Pre-reqs
 
  - Create an Azure account (there is a [free option](https://azure.microsoft.com/en-in/pricing/free-services/))
@@ -29,9 +33,9 @@ These are hands-on resources to help you **really learn Azure** and **ace** the 
 | 0.1 | [Sign in and try the Azure tools](/modules/intro-tools/README.md) |
 | 0.2 | [Understand Resource Groups](/modules/intro-resourcegroups/README.md) |
 
-## 1. Develop Azure compute solutions (25–30%)
+## Block 1. Develop Azure compute solutions (25–30%)
 
-### 1.1 Implement containerized solutions
+### Topic 1.1 Implement containerized solutions
 
 | | |
 |-|-|
@@ -40,9 +44,11 @@ These are hands-on resources to help you **really learn Azure** and **ace** the 
 | 1.1.3 | [Run containers by using Azure Container Instance](/labs/aci/README.md) |
 | 1.1.4 | [Create solutions by using Azure Container Apps](/labs/aca/README.md) |
 
-### 1.2 Implement Azure App Service Web Apps
+### Topic 1.2 Implement Azure App Service Web Apps
 
-- Create an Azure App Service Web App
+| | |
+|-|-|
+| 1.1.1 | [Create an Azure App Service Web App](/modules/appservice/README.md) |
 - Configure and implement diagnostics and logging
 - Deploy code and containers
 - Configure settings including Transport Layer Security (TLS), API settings, and service connections

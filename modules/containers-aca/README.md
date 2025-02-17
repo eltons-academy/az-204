@@ -23,13 +23,13 @@ In the Portal create a new Container App. Explore the tabs for the new service; 
 
 ## Create an ACA container with the CLI
 
-Create a new Resource Group for the lab, choose your oown region if you like:
+Create a new Resource Group for the lab, change the region if you like:
 
 ```
 az group create -n labs-aca --tags course=az204 -l eastus
 ```
 
-ACA is a relatively new serivce - ensure it's enabled for your subscription, and update your command line:
+ACA is a relatively new serivce - ensure it's enabled for your subscription, and update your command line extension:
 
 ```
 az provider register -n Microsoft.App --wait
@@ -37,13 +37,13 @@ az provider register -n Microsoft.OperationalInsights --wait
 az extension add --name containerapp --upgrade
 ```
 
-Now create a Container App Environment, this is a grouping of Container Apps which can communicate internally and share common features like secrets:
+Now create a Container App _Environment_. This is a grouping of Container Apps which can communicate internally and share common features like secrets:
 
 ```
 az containerapp env create --name rng -g labs-aca
 ```
 
-> You'll see this also create a Log Analytics Workspace. This is a service for collecting, storing and querying log data and metrics. ACA automatically wires up container logs to wrtie to Log Analytics.
+> You'll see this also create a Log Analytics Workspace. This is a service for collecting, storing and querying log data and metrics. ACA automatically wires up container logs to write to Log Analytics.
 
 Now you can use `az containerapp create` to create a new Container App in the environment.
 
@@ -80,7 +80,7 @@ curl "https://$RNG_API/rng"
 
 > Note the HTTPS - ACA provisions and applies a TLS cert along with the domain entry
 
-The ACA archiecture has many layers - your container is one replica running in one revision in one app in the container app environemnt. But there are simple commands for everyday management tasks.
+The ACA archiecture has many layers - your container is one replica running in one revision in one app in the container app environment. But there are simple commands for everyday management tasks.
 
 📋 Print the logs from your API container.
 
@@ -118,7 +118,7 @@ ACA is designed for distributed applications where each component runs in its ow
 <details>
   <summary>Not sure how?</summary>
 
-This is pretty much the same command - only the Docker image changes. If you add the `--query` paramater to the create command, the output will just be the field(s) you specify.
+This is pretty much the same command - only the Docker image and the name changes. If you add the `--query` parameter to the create command, the output will just be the field(s) you specify.
 
 ```
 az containerapp create --name rng-web --environment rng -g labs-aca --image ghcr.io/eltons-academy/rng-web:2025 --target-port 8080 --ingress external --query properties.configuration.ingress.fqdn
@@ -130,7 +130,7 @@ Browse to the domain and you should see a simple web page with a _Go_ button. Cl
 
 > When you try it you'll see an error message. The URL the web app is using for the API is incorrect.
 
-These components are both .NET apps, using JSON files and enviroment variables for configuration. In a real app the configuration options would be documented somewhere, or you'd have to dig into the source code. In this case there is a default setting in the Docker image.
+We need to change the config setting in the web app. These components are both .NET apps, using JSON files and enviroment variables for configuration. In a real app the configuration options would be documented somewhere, or you'd have to ask developers or dig into the source code. In this case there is a default setting in the Docker image.
 
 ```
 # get your own copy of the image:
@@ -142,16 +142,49 @@ docker image inspect ghcr.io/eltons-academy/rng-web:2025
 
 > The API URL which the web app is trying to use is set in the `RngApi__Url` environment variable.
 
+📋 Print the details of the web Container App and look at the environment variables which have been set.
+
+<details>
+  <summary>Not sure how?</summary>
+
+The usual `show` command prints all the resource details:
+
+```
+az containerapp show -g labs-aca -n rng-web
+```
+
+Environment variables are set in the templated container, in the `env` field:
 
 ```
 az containerapp show -g labs-aca -n rng-web --query 'properties.template.containers[0].env'
 ```
 
-> none
+</details><br/>
+
+There are no environment variables set in the container, which means it's using the default from the Docker image.
+
+
+📋 Update the web Container App to set an environment variable called `RngApi__Url` with the full path to the RNG API endpoint - including the HTTPS scheme and the `/rng` path.
+
+<details>
+  <summary>Not sure how?</summary>
+
+Environment variables can be set when you create a Container App, or when you update it.
+
+The `update` command help shows some useful examples:
 
 ```
-az containerapp update -g labs-aca -n rng-web --set-env-vars "RngApi__Url=https://<api-fqdn>/rng"
+az containerapp update --help
 ```
+
+To set the environment variable run:
+
+```
+az containerapp update -g labs-aca -n rng-web --set-env-vars "RngApi__Url=https://$RNG_API/rng"
+```
+
+</details><br/>
+
 
 wait:
 
