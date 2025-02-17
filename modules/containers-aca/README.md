@@ -1,4 +1,6 @@
-# Azure Container 
+# Azure Container Apps
+
+Azure Container Apps (ACA) is a managed container platform which abstracts away the infrastructure layer. You can run complex distributed applications with ACA with high-value features out of the box, including HTTPS provisioning, auto-scale, scale to zero, turnkey authentication, observability and more. ACA runs standard Docker container images - currently limited to Linux on Intel - and uses the power of Kubernetes under the hood, wrapped in a much simpler user experience.
 
 ## Reference
 
@@ -13,74 +15,133 @@
 
 ## Explore Azure Container Apps
 
-Open the Portal, create, search container app, create
+In the Portal create a new Container App. Explore the tabs for the new service; you can:
 
-- container app environment
-- container details - registry, compute
-- ingress - internal, external, transport
-
+- select or create a new Container App Environment
+- set the container details - the registry and image, amount of compute
+- configure ingress - network communication into the app - can be internal or external
 
 ## Create an ACA container with the CLI
 
-Start with a new Resource Group for the lab, using your preferred region:
+Create a new Resource Group for the lab, choose your oown region if you like:
 
 ```
 az group create -n labs-aca --tags course=az204 -l eastus
 ```
 
-Ensure your subscription and command line updated for ACA:
+ACA is a relatively new serivce - ensure it's enabled for your subscription, and update your command line:
 
 ```
-az extension add --name containerapp --upgrade
 az provider register -n Microsoft.App --wait
 az provider register -n Microsoft.OperationalInsights --wait
+az extension add --name containerapp --upgrade
 ```
 
-create env
+Now create a Container App Environment, this is a grouping of Container Apps which can communicate internally and share common features like secrets:
 
 ```
 az containerapp env create --name rng -g labs-aca
 ```
 
-> creates loga with random suffix name
+> You'll see this also create a Log Analytics Workspace. This is a service for collecting, storing and querying log data and metrics. ACA automatically wires up container logs to wrtie to Log Analytics.
 
-create api container
+Now you can use `az containerapp create` to create a new Container App in the environment.
+
+📋 Create a Container App called `rng-api` using the image `ghcr.io/eltons-academy/rng-api:2025`. This is a REST API - you should create it to be externally available for HTTP traffic, mapping to port `8080` inside the container.
+
+<details>
+  <summary>Not sure how?</summary>
+
+Start with the help:
+
+```
+az containerapp create --help
+```
+
+For a new Container App you need to specify the environment and image. To get public networking, specify external ingress and set the target port:
 
 ```
 az containerapp create --name rng-api --environment rng -g labs-aca --image ghcr.io/eltons-academy/rng-api:2025 --target-port 8080 --ingress external
 ```
 
-print dns:
+</details><br/>
+
+When your Container App is running it will be allocated a public DNS name. You can query the resource to print just the domain name, and store the result in a variable:
 
 ```
-az containerapp show -n rng-api -g labs-aca --query properties.configuration.ingress.fqdn
+$RNG_API = az containerapp show -n rng-api -g labs-aca --query 'properties.configuration.ingress.fqdn' -o tsv
 ```
 
-test:
+This is a REST API which generates a random number. Test it with an HTTP request and you should see a number:
 
 ```
-curl https://<api-fqdn>/rng
+curl "https://$RNG_API/rng"
 ```
+
+> Note the HTTPS - ACA provisions and applies a TLS cert along with the domain entry
+
+The ACA archiecture has many layers - your container is one replica running in one revision in one app in the container app environemnt. But there are simple commands for everyday management tasks.
+
+📋 Print the logs from your API container.
+
+<details>
+  <summary>Not sure how?</summary>
+
+Start with the help to see what commands are available:
+
+```
+az containerapp --help
+```
+
+There is a `logs` command group:
+```
+az containerapp logs --help
+```
+
+You can specify the revision and replica to fetch the logs from, but the default will pick one replica from the active revision:
 
 ```
 az containerapp logs show -n rng-api -g labs-aca
 ```
 
+</details><br/>
+
+This is just one part of the full solution, next we'll add a Web UI container.
+
 ## Connect Container Apps in an Environment
 
-- run web
+ACA is designed for distributed applications where each component runs in its own Container App in the same Environment. The service has features to ensure containers can communicate securely.
+
+
+📋 Create a new Container App in the same Environment to run the web UI. Call it `rng-web` and use the image `ghcr.io/eltons-academy/rng-web:2025`. The container listens on port 8080 and it should be publicly available. Print the domain address so you can try the app.
+
+<details>
+  <summary>Not sure how?</summary>
+
+This is pretty much the same command - only the Docker image changes. If you add the `--query` paramater to the create command, the output will just be the field(s) you specify.
 
 ```
 az containerapp create --name rng-web --environment rng -g labs-aca --image ghcr.io/eltons-academy/rng-web:2025 --target-port 8080 --ingress external --query properties.configuration.ingress.fqdn
 ```
 
-> browse site, shows - error message on clicking Go
+</details><br/>
+
+Browse to the domain and you should see a simple web page with a _Go_ button. Click the button and the web app tries to fetch a random number from the API.
+
+> When you try it you'll see an error message. The URL the web app is using for the API is incorrect.
+
+These components are both .NET apps, using JSON files and enviroment variables for configuration. In a real app the configuration options would be documented somewhere, or you'd have to dig into the source code. In this case there is a default setting in the Docker image.
 
 ```
+# get your own copy of the image:
+docker pull ghcr.io/eltons-academy/rng-web:2025
+
+# inspect it to show the details
 docker image inspect ghcr.io/eltons-academy/rng-web:2025
 ```
 
-> conf set in env `RngApi__Url`
+> The API URL which the web app is trying to use is set in the `RngApi__Url` environment variable.
+
 
 ```
 az containerapp show -g labs-aca -n rng-web --query 'properties.template.containers[0].env'
