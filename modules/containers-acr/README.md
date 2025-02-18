@@ -10,6 +10,8 @@ Open source applications are often published as container images on Docker Hub. 
 
 - [Container Registry documentation](https://docs.microsoft.com/en-gb/azure/container-registry/)
 
+- [ACR Tasks documentation](https://learn.microsoft.com/en-gb/azure/container-registry/container-registry-tasks-overview)
+
 - [`az acr` commands](https://docs.microsoft.com/en-us/cli/azure/acr?view=azure-cli-latest)
 
 
@@ -77,8 +79,7 @@ When the command completes you have your own registry, available at the domain n
 🧭 Explore ACR in the Azure Portal from the [Container Registry list](https://portal.azure.com/#browse/Microsoft.ContainerRegistry%2Fregistries). Check through the blades - here are some of the key things to note:
 
 - _Settintgs...Properties_ for pricing plan and admin user
-- _Services...Repositories_ for your image lists
-- _Services...Connected Registries_ 
+- _Services...Geo-replications_ to add regional replicated ACR instances 
 - _Repository Permissions...Tokens_ for fine-grained access to non-Azure users
 - _Monitoring...Metrics_ to graph storage used for your images
 ---
@@ -225,7 +226,15 @@ az acr build --image labs-acr/hello-azure --registry $ACR_NAME ./src/hello-azure
 
 > By default ACR will build an image targeted for Linux on Intel machines. Docker is multi-platform and you can specify ACR to target  Windows or Arm.
 
-You should find the build completes very quickly. ACR queues the build task and it runs on an agent from a pool. There is usually lots of capacity in the pool (and you can create your own agent pools).
+You should find the build completes very quickly. ACR queues the build task and it runs on an agent from a pool. There is usually lots of capacity in the pool (and you have the option to create your own agent pools).
+
+---
+🧭 Open your ACR service in the Portal, now you have some images stored. Look through:
+
+- _Services...Repositories_ for your image lists
+- _Services...Tasks_ for scheduled tasks and runs
+- _Services...Webhooks_ to create webhook notifications from repository events
+---
 
 ## Run a one-off container
 
@@ -243,11 +252,7 @@ az acr run -r $ACR_NAME --cmd "${ACR_NAME}.azurecr.io/labs-acr/hello-azure" /dev
 
 > The syntax looks odd because you can actually upload a source code folder and send the input to run command.
 
-## Browse to ACR in portal  
-
-ACR is one service which can be easier to manage in the Portal than with the command line. 
-
-[Browse to your ACR](https://portal.azure.com/#browse/Microsoft.ContainerRegistry%2Fregistries) and open the _Repositories_ list. You'll see the images you pushed - what do the tags and manifests mean? Check out the other ACR features, webhooks and replications are things you might use.
+These container runs are not the same as ACR Tasks. Tasks are for building and pushing images, they can be scheduled or triggered from a GitHub pull request, or from a change to the base image (see the [ACR Tasks samples](https://github.com/Azure-Samples/acr-tasks) on GitHub).
 
 ## Lab
 

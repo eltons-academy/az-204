@@ -2,7 +2,7 @@
 
 How would you run a .NET app on Azure? You could provision a VM, then connect to it and install .NET, download your app binaries, set up the configuration and start the app. It's hard to automate all those steps, time-consuming to spin up a new instance and difficult to keep multiple instances in sync. Or you could use App Service, but there's still a lot to set up and you end up with a different hosting environment than you have locally.
 
-Enter Docker - where you build all your application components and depdencies into a package called an _image_ and use that to run instances of your apps called _containers_.
+Enter Docker - where you build all your application components and depdencies into a package called an _image_ and use that to run instances of your apps called _containers_. Lots of Azure services let you run apps in containers and it's a very powerful developer experience: you can use Docker on your machine to run the exact same app that you run in the cloud.
 
 ## Reference
 
@@ -201,6 +201,9 @@ Browse to Docker Hub and you will see your image listed.
 
 > By default Docker Hub images are publicly available, so now anyone could run a container from your version of the app using a single Docker command.
 
+## Building and running distributed apps with Docker Compose
+
+TODO
 
 ## Lab
 

@@ -37,12 +37,13 @@ These are hands-on resources to help you **really learn Azure** and **ace** the 
 
 ### Topic 1.1 Implement containerized solutions
 
-| | |
-|-|-|
-| 1.1.1 | [Create and manage container images for solutions](/modules/containers/README.md) |
-| 1.1.2 | [Publish an image to Azure Container Registry](/labs/acr/README.md) |
-| 1.1.3 | [Run containers by using Azure Container Instance](/labs/aci/README.md) |
-| 1.1.4 | [Create solutions by using Azure Container Apps](/labs/aca/README.md) |
+| | Skill | Modules |
+|-|-| -|
+| 1.1.1 | Create and manage container images for solutions| [containers](/modules/containers/README.md) |
+| 1.1.2 | Publish an image to Azure Container Registry | [containers-acr](/modules/containers-acr/README.md) |
+| 1.1.3 | Run containers by using Azure Container Instance | [containers-aci](/modules/containers-aci/README.md) |
+| 1.1.4 | Create solutions by using Azure Container Apps | [containers-aca](/modules/containers-aca/README.md) |
+|  |  | [containers-aca-security](/modules/containers-aca-security/README.md) |
 
 ### Topic 1.2 Implement Azure App Service Web Apps
 
