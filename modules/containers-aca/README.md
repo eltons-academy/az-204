@@ -230,10 +230,35 @@ az containerapp revision list -g labs-aca -n rng-web -o table
 
 ## Build and Deploy ACA from ACR
 
+So far we've been using my public images to run containers. ACA also has support for building container images from source - like we did with Docker Compose in the [containers module](/modules/containers/README.md). 
 
-Compose integration:
+ACA has Docker Compose support so you can run a cloud version of `docker compose build`. You can start from scratch to build and deploy an ACA app from source:
+
+- the CLI creates an Azure Container Registry for the images
+- ACR is used for the build - for each Compose service your local source is sent to Azure and the images are built and stored in ACR
+- a Container Apps Environment is created
+- a Container App for each service in the Compose file is created
+- each Container App has a Secret created which contains a token to access ACR
+
+This is a very quick way to prototype your app running in Azure. You can use the exact same Compose file you use locally:
 
 - [docker-compose-build.yml](/src/rng/docker-compose-build.yml)
+
+📋 Use a `containerapp compose` command to deploy a new version of the random number app from the Compose file `docker-compose-build.yml` in the folder `src/rng`. Make sure to use a new Container App Environment so you can run alongside your existing app.
+
+<details>
+  <summary>Not sure how?</summary>
+
+There is only one `compose` command :)
+
+```
+az containerapp compose --help
+
+az containerapp compose create --help
+
+```
+
+You need to be in the correct folder for the source, then run the `create` command with a new environment name, and the name of the Compose file:
 
 ```
 cd src/rng
@@ -241,31 +266,44 @@ cd src/rng
 az containerapp compose create -g labs-aca --environment rng2 -f docker-compose-build.yml
 ```
 
-> creates loga, acr etc.
+</details><br/>
 
-> ACR credentials stored as secret
-
-```
-az containerapp secret list -g labs-aca -n numbers-web 
-```
-
-```
-az containerapp show -g labs-aca -n numbers-web --query 'properties.template.containers[0].env'
-```
-
-> already set from Compose file
+It will take a few minutes to create all the services, build the images and start the app. When it's done you can find the address of the web container:
 
 ```
 az containerapp show -g labs-aca -n numbers-web --query  'properties.configuration.ingress.fqdn'
 ```
 
-> try app, api call fails - defaults to external ingress
+You can browse to check out the app - but think about the extra configuration we did for the previous deployment. Will the app work?
+
+No, it doesn't work :)
+
+---
+🧭 Explore your new container apps to track down the problem:
+
+- look at the ingress settings for the API container app - what is the URL?
+- now check the environment variables for the web container app - does it match the API URL?
+---
+
+You'll see the web app has an environment variable set already which it copied from the Compose file, but the URL is wrong (it's configured for local running with Docker Compose). Also the API has external ingress set up which we don't want, it should be an internal component in ACA.
+
+
+📋 Use `containerapp update` commands to get the new deployment working - set the API to use internal ingress, mapping HTTP port `80` to port `8080` inside the container, and change the environment variable to the correct URL in the web app.
+
+<details>
+  <summary>Not sure how?</summary>
+
+These are the same steps we did with the other apps. Note the new names: `numbers-web` and `numbers-api`, which come from the Compose file service names.
 
 ```
 az containerapp ingress update -g labs-aca -n numbers-api --type internal --transport http --target-port 8080 --allow-insecure true -o table
 
 az containerapp update -g labs-aca -n numbers-web --set-env-vars "RngApi__Url=http://numbers-api/rng"
 ```
+
+</details><br/>
+
+Now your app is running correctly. This sort of post-deployment config cleanup is very common - but if your Compose model is configured differently you might be lucky and get your app working first time.
 
 ## Lab 
 

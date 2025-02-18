@@ -248,7 +248,7 @@ ACI supports YAML for modelling your container applications. We'll explore that 
 
 - configuration values can be set as environment variables - they can be plain text values which you can see when you query the resource, and secure values - which you can't
 
-We'll deploy a simple distributed app which runs a website for generating random numbers, with the numbers provided by a backend REST API:
+We'll deploy the random number generator app you've already used in the [containers module](/modules/containers/README.md):
 
 ```mermaid
 

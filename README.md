@@ -28,17 +28,17 @@ These are hands-on resources to help you **really learn Azure** and **ace** the 
 
 ## 0. Do this first :)
 
-| | |
-|-|-|
-| 0.1 | [Sign in and try the Azure tools](/modules/intro-tools/README.md) |
-| 0.2 | [Understand Resource Groups](/modules/intro-resourcegroups/README.md) |
+| # | Skill | Modules |
+|-|-|-|
+| 0.1 | Sign in and explore the Azure tools | [intro-tools](/modules/intro-tools/README.md) |
+| 0.2 | Understand Resource Groups | [intro-resourcegroups](/modules/intro-resourcegroups/README.md) |
 
 ## Block 1. Develop Azure compute solutions (25–30%)
 
 ### Topic 1.1 Implement containerized solutions
 
-| | Skill | Modules |
-|-|-| -|
+| # | Skill | Modules |
+|-|-|-|
 | 1.1.1 | Create and manage container images for solutions| [containers](/modules/containers/README.md) |
 | 1.1.2 | Publish an image to Azure Container Registry | [containers-acr](/modules/containers-acr/README.md) |
 | 1.1.3 | Run containers by using Azure Container Instance | [containers-aci](/modules/containers-aci/README.md) |

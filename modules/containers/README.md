@@ -7,7 +7,8 @@ Enter Docker - where you build all your application components and depdencies in
 ## Reference
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) - the easiest way to run containers on your local machine
-- [Getting Started guide](https://docs.docker.com/get-started/) - from Docker
+- [Dockerfile reference](https://docs.docker.com/reference/dockerfile/)
+- [Compose file reference](https://docs.docker.com/reference/compose-file/)
 - [.NET container images](https://hub.docker.com/_/microsoft-dotnet) - .NET cross-platform images
 - [.NET Framework container images](https://hub.docker.com/_/microsoft-dotnet-framework) - .NET 3.5 & 4.8 Windows images
 
@@ -203,7 +204,99 @@ Browse to Docker Hub and you will see your image listed.
 
 ## Building and running distributed apps with Docker Compose
 
-TODO
+Running individual apps in containers is straightforward, but Docker also supports distributed app with multiple components running in diffrerent containers. That could be a microservices architecture or a web app and a database - it's all just containers to Docker.
+
+Docker creates a virtual environment for each container which includes the networking stack. Docker networks are virtualized and containers connected to the same network can communicate using all the usual transports.
+
+You can create networks and containers individually with the Docker CLI, but for more complex apps it's better to model them using Docker Compose. We'll deploy a simple distributed app which runs a website for generating random numbers, with the numbers provided by a backend REST API:
+
+```mermaid
+
+architecture-beta
+    group rng(cloud)[RNG]
+    service web(server)[Website] in rng
+    service api(server)[API] in rng
+    api:L -- R:web
+```
+
+Here's how that's modelled in Compose:
+
+- [docker-compose.yml](/src/rng/docker-compose.yml) - a Compose file for the random number app
+
+Some of the Azure services support the Compose format, so it's good to be familiar with it (although you don't need to know it in detail). The basics: 
+
+- a `service` represents a component running in a container
+- the service configuration encapsulates the options you would put in `docker run`
+- `networks` can be defined and services attached to the same network can communicate
+- containers use the service name as the DNS name to find each other
+
+📋 Run the app using a `docker compose` command with the file path `src/rng/docker-compose.yml`. Test that the web application works by browsing and getting a random number.
+
+<details>
+  <summary>Not sure how?</summary>
+
+`compose` is a command group - print the help and you will see the `up` command looks good:
+
+```
+docker compose --help
+
+docker compose up --help
+```
+
+Compose assumes you are using a file called `docker-compose.yml` in the current directory. Use the `-f` flag to specify the path:
+
+```
+docker compose -f src/rng/docker-compose.yml up
+```
+
+</details><br/>
+
+You'll see lots of logs printed - Docker attaches to the containers and displays the logs unless you start in `detached` mode.
+
+> Browse to http://localhost:8080 and you should be able to click the button and get a random number.
+
+Those containers are running from my images pushed to a public registry but you can also use Docker Compose to build images from source code.
+
+This Compose file has `build` sections specified which tell Docker where to find the Dockerfiles:
+
+- [docker-compose.yml](/src/rng/docker-compose-build.yml) - the same Compose spec but with build information
+- [Dockerfile for the API](/src/rng/Numbers.Api/Dockerfile)
+- [Dockerfile for the web app](/src/rng/Numbers.Web/Dockerfile)
+
+
+📋 Stop the app you're running and use a `compose` command to build your own images from the file `src/rng/docker-compose-build.yml`. Run the app from your own images in detached mode.
+
+<details>
+  <summary>Not sure how?</summary>
+
+`compose` is a command group - there's a `build` command:
+
+```
+docker compose --help
+
+docker compose build --help
+```
+
+If your app is still running from `compose up` you can exit by hitting Ctrl-C / Cmd-C. 
+
+Now build your images:
+
+```
+docker compose -f src/rng/docker-compose-build.yml build
+```
+
+And run detached containers:
+
+```
+docker compose -f src/rng/docker-compose-build.yml up -d
+```
+
+</details><br/>
+
+Compose uses the same Docker Engine to build the app as if you had run `docker image build` commands. Any images referenced in the Dockerfiles which you don't have will be pulled as part of the build.
+
+Your app should be working in the same way as before. This is the power of Docker - you can get complex apps running on your own machine and then deploy them to an Azure service knowing they have all the dependencies and config they need.
+
 
 ## Lab
 
