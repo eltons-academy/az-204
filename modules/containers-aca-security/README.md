@@ -1,21 +1,48 @@
 # Azure Container Apps - Security
 
-security: authn & authz; internal ingress; secrets; dapr - mtls
+One of the big appeals of Container Apps is the turnkey feature set. You can enable lots of high-value infrastructure functions with very little effort and with no changes to your application code. We'll focus on the main features for securing Container Apps in this module: adding authentication to web apps; restricting access to internal components; using secrets for senstive config settings and enabling encryption between components.
 
 ## Reference
 
-- [Implement Azure Container Apps](https://learn.microsoft.com/en-gb/training/modules/implement-azure-container-apps/) | Microsoft Learn
-
-- [Container Apps documentation](https://docs.microsoft.com/en-gb/azure/container-apps/)
+- [Authentication and authorization in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/authentication)
 
 - [Container Apps YAML specification](https://learn.microsoft.com/en-us/azure/container-apps/azure-resource-manager-api-spec?tabs=yaml)
 
-- [`az containerapp` commands](https://learn.microsoft.com/en-us/cli/azure/containerapp?view=azure-cli-latest)
+- [Distributed Application Runtime (Dapr) documentation](https://docs.dapr.io)
 
+- [`az containerapp` commands](https://learn.microsoft.com/en-us/cli/azure/containerapp/auth?view=azure-cli-latest)
 
 ## Deploy Container Apps from YAML
 
-- model, compare to compose
+We'll recreate the random number app again, this time deploying it from Container App YAML models.
+
+Start with a new Resource Group for the lab, using your preferred region:
+
+```
+az group create -n labs-aca-security3 --tags course=az204 -l eastus
+```
+
+And a new Container App environment:
+
+```
+az containerapp env create --name rng -g labs-aca-security3
+```
+
+> You can't model the full Environment with multiple Container Apps in a single YAML model in the Azure format - you could use the COmpose model for that. Instead you model each Container App:
+
+- [rng-api-aca.yaml](\modules\containers-aca-security\rng-api-aca.yaml) - YAML model for the API
+- [rng-web-aca.yaml](\modules\containers-aca-security\rng-web-aca.yaml) - YAML model for the web app
+
+Yes, they are pretty much identical.
+
+```
+az containerapp create -n rng-api -g labs-aca-security3 --environment rng --yaml "modules/containers-aca-security/rng-api-aca.yaml"
+
+az containerapp create -n rng-web -g labs-aca-security3 --environment rng --yaml "modules/containers-aca-security/rng-web-aca.yaml"
+
+
+```
+
 
 
 ## Enable authentication for the web app
@@ -27,14 +54,14 @@ You don't need any code changes to add authentication to your app; the auth flow
 Auth is not enabled by default:
 
 ```
-az containerapp auth show -g labs-aca -n rng-web
+az containerapp auth show -g labs-aca-security3 -n rng-web
 ```
 
 We'll integrate with Microsoft's identity provider. To do that we need to create a few identity resources - these will get their own module later, so don't worry too much about what's happening here.l
 
 ```
 # store your web app's callback URL:
-$RNG_WEB=$(az containerapp show -n rng-web -g labs-aca --query 'properties.configuration.ingress.fqdn' -o tsv)
+$RNG_WEB=$(az containerapp show -n rng-web -g labs-aca-security3 --query 'properties.configuration.ingress.fqdn' -o tsv)
 $WEB_CALLBACK_URL="https://$RNG_WEB/.auth/login/aad/callback"
 
 # create an app registration to allow the web app to use Microsoft ID:
@@ -77,10 +104,10 @@ Put it all together:
 
 ```
 # configure Microsoft as an identity provider:
-az containerapp auth microsoft update -g labs-aca -n rng-web --client-id $CLIENT_ID --issuer "https://sts.windows.net/$TENANT_ID/"
+az containerapp auth microsoft update -g labs-aca-security3 -n rng-web --client-id $CLIENT_ID --issuer "https://sts.windows.net/$TENANT_ID/"
 
 # requre auth for the app:
-az containerapp auth update -g labs-aca -n rng-web --redirect-provider azureactivedirectory --action RedirectToLoginPage
+az containerapp auth update -g labs-aca-security3 -n rng-web --redirect-provider azureactivedirectory --action RedirectToLoginPage
 ```
 
 </details><br/>
@@ -105,7 +132,7 @@ ACA lets you configure ingress to be internal so communication is restricted to 
 Print the current ingress setup for the API app:
 
 ```
-az containerapp ingress show -g labs-aca -n rng-api -o table
+az containerapp ingress show -g labs-aca-security3 -n rng-api -o table
 ```
 
 External ingress with secure transport is what gives the API a public HTTPS URL.
@@ -124,7 +151,7 @@ az containerapp ingress update --help
 Setting ingress to internal doesn't automatically do the other things we need, so we need to explicitly set the transport, the security flag and the target port:
 
 ```
-az containerapp ingress update -g labs-aca -n rng-api --type internal --transport http --target-port 8080 --allow-insecure true -o table
+az containerapp ingress update -g labs-aca-security3 -n rng-api --type internal --transport http --target-port 8080 --allow-insecure true -o table
 ```
 
 The DNS name changes to include `.internal`. Now we need to change the web app configuration again to use the new URL - but we don't need the FQDN. Container apps within the same environment can access each other using just the app name.
@@ -149,7 +176,7 @@ az containerapp secret set --help
 Note that secret names are very strict, they can only include lowercase letters, numbers and hyphens:
 
 ```
-az containerapp secret set -g labs-aca -n rng-web --secrets "rng-api-url=http://rng-api/rng"
+az containerapp secret set -g labs-aca-security3 -n rng-web --secrets "rng-api-url=http://rng-api/rng"
 ```
 
 The output state the app needs to be restarted - but we're going to make an update which will cause a new revision anyway.
@@ -172,7 +199,7 @@ az containerapp update --help
 You include `secretref:` to load a named environment variable from a secret in the container app:
 
 ```
-az containerapp update -g labs-aca -n rng-web --set-env-vars "RngApi__Url=secretref:rng-api-url"
+az containerapp update -g labs-aca-security3 -n rng-web --set-env-vars "RngApi__Url=secretref:rng-api-url"
 ```
 
 This creates a new revision so you need to wait for it to roll out before the change is ready.
@@ -200,24 +227,24 @@ There's one other big feature of ACA: integration with the [Distributed Applicat
 register components:
 
 ```
-az containerapp env dapr-component set -g labs-aca -n rng --dapr-component-name rng-web --yaml modules/containers-aca/dapr/rng-web-component.yaml
-az containerapp env dapr-component set -g labs-aca -n rng --dapr-component-name rng-api --yaml modules/containers-aca/dapr/rng-api-component.yaml
+az containerapp env dapr-component set -g labs-aca-security3 -n rng --dapr-component-name rng-web --yaml modules/containers-aca/dapr/rng-web-component.yaml
+az containerapp env dapr-component set -g labs-aca-security3 -n rng --dapr-component-name rng-api --yaml modules/containers-aca/dapr/rng-api-component.yaml
 ```
 
 enable dapr:
 
 ```
-az containerapp dapr enable -g labs-aca -n rng-api --dapr-app-id rng-api --dapr-app-port 8080
+az containerapp dapr enable -g labs-aca-security3 -n rng-api --dapr-app-id rng-api --dapr-app-port 8080
 
-az containerapp dapr enable -g labs-aca -n rng-web --dapr-app-id rng-web --dapr-app-port 8080 --dapr-enable-api-logging
+az containerapp dapr enable -g labs-aca-security3 -n rng-web --dapr-app-id rng-web --dapr-app-port 8080 --dapr-enable-api-logging
 ```
 
 set web to use dapr sidecar:
 
 ```
-az containerapp update -g labs-aca -n rng-web --set-env-vars "RngApi__Url=http://localhost:3500/v1.0/invoke/rng-api/method/rng"
+az containerapp update -g labs-aca-security3 -n rng-web --set-env-vars "RngApi__Url=http://localhost:3500/v1.0/invoke/rng-api/method/rng"
 
-az containerapp revision list -g labs-aca -n rng-web -o table
+az containerapp revision list -g labs-aca-security3 -n rng-web -o table
 ```
 
 - test
@@ -225,7 +252,7 @@ az containerapp revision list -g labs-aca -n rng-web -o table
 remove ingress from api - all coms via dapr:
 
 ```
-az containerapp ingress disable -g labs-aca -n rng-api 
+az containerapp ingress disable -g labs-aca-security3 -n rng-api 
 ```
 
 > can add resiliency policy for retries, timeout etc https://learn.microsoft.com/en-us/azure/container-apps/dapr-component-resiliency?tabs=cli
