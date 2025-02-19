@@ -1,5 +1,20 @@
 properties:
   configuration:
+    ingress:
+      targetPort: 8080
   template:
     containers:
-      - image: ghcr.io/eltons-academy/rng-api:2025 
+      - name: app
+        image: ghcr.io/eltons-academy/rng-api:2025 
+        resources: 
+          cpu: 0.25 
+          memory: 0.5Gi 
+    scale:
+      minReplicas: 1
+      maxReplicas: 2
+      rules:
+      - name: httpscalingrule
+        custom:
+          type: http
+          metadata:
+            concurrentRequests: '20'

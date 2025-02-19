@@ -1,9 +1,6 @@
-type: Microsoft.App/containerApps
-kind: containerapp
 properties:
   configuration:
     ingress:
-      external: true
       targetPort: 8080
   template:
     containers:
