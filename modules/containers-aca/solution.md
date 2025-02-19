@@ -1,11 +1,10 @@
 # Lab Solution
 
+The default settings for ACA are fairly reasonable:
 
-Default settings:
-
-- scale 0-10
-- cpu 0.5
-- memory 1GB
+- Scale: 0-10 replicas
+- CPU: 0.5
+- Memory: 1GB
 
 Only certain CPU & memory combinations are allowed. Try to set the API to 0.2:
 
@@ -30,7 +29,6 @@ Throw in some load with [Fortio](https://fortio.org) (need Docker Desktop runnin
 ```
 docker run fortio/fortio load -qps 20 -c 10 -t 2m https://numbers-web.yellowwater-d00cd992.westus2.azurecontainerapps.io
 ```
-
 
 Check metrics for replica count in Portal:
 

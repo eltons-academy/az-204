@@ -303,14 +303,21 @@ az containerapp update -g labs-aca -n numbers-web --set-env-vars "RngApi__Url=ht
 
 </details><br/>
 
-Now your app is running correctly. This sort of post-deployment config cleanup is very common - but if your Compose model is configured differently you might be lucky and get your app working first time.
+Now your app is running correctly. This sort of post-deployment config cleanup is very common - and easy to automate - but if your Compose model is configured differently you might be lucky and get your app working first time.
 
 ## Lab 
 
-scale settings so api is always available; test environment - max 3 containers, minimum cpu - api & web will work with 0.1 of each
+Check the Portal for your original random number app deployment (the Container Apps called `rng-api` and `rng-web`) and you'll see there are no replicas running for the active revision. That's because the default settings are to scale to zero when there is no traffic for a period.
 
-also set scale so up is triggered with conc 20 for api and conc 5 for web - test to verify up & down
+Browse to the web app and that will trigger a replica to be created - but you'll find there's a delay loading the website while the container comes online. Git the _Go_ button and there's another delay while the API replica is created and that container comes online.
 
+You shouldn't really use the defaults for things like scaling rules and compute sizes which have a direct impact on cost and performance. Update the original container app so that:
+
+- both containers are always available, with a maximum of 3 replicas
+- we're using a minimal amount of compute - remember from the [ACI module](/modules/containers-aci/README.md) these components will happily use 0.5 CPU cores and 0.5GB of memory
+- tune the scale up rules so the API scales when there are 20 concurrent requests, and the web scales at 5
+
+If there's a load testing tool you're familiar with, you can use that to test the scale rules.
 
 > Stuck? Try [hints](hints.md) or check the [solution](solution.md).
 
